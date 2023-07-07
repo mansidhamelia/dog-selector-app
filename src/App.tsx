@@ -1,13 +1,12 @@
 
 import './App.css'
+import Login from './components/Login'
 
 function App() {
 
   return (
     <>
-      <p className="text-red-300">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Login />
     </>
   )
 }
