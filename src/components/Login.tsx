@@ -1,5 +1,49 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+    const navigate = useNavigate();
+
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+
+    const nameChangeHandler = (event) => {
+        setName(event.target.value);
+    }
+    const emailChangeHandler = (event) => {
+        console.log(event.target.value);
+
+        setEmail(event.target.value);
+    }
+
+    const loginHandler = async (event) => {
+        event.preventDefault();
+
+
+        try {
+            const response = await fetch('https://frontend-take-home-service.fetch.com/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email }),
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                console.log('Logged in successfully!');
+                navigate('/doglist');
+
+            } else {
+                // Handle login failure
+                console.error('Login failed!');
+            }
+        } catch (error) {
+            console.error('An error occurred during login:', error);
+        }
+    }
+
+
     return (
         <div
             className="relative flex min-h-full justify-center md:px-12 lg:px-0"
@@ -8,7 +52,6 @@ const Login = () => {
                 <div className="mx-auto w-full max-w-md sm:px-4 md:w-96 md:max-w-sm md:px-0">
                     <h1>Login</h1>
                     {/* text */}
-
                     <div className="mt-10">
                         <h2 className="text-lg font-semibold text-gray-900">
                             Sign in to your account
@@ -16,16 +59,26 @@ const Login = () => {
                     </div>
 
                     {/* form */}
-                    <form action="#" className="mt-10 grid grid-cols-1 gap-y-8">
+                    <form action="#" className="mt-10 grid grid-cols-1 gap-y-8" onSubmit={loginHandler}>
+                        <div className="mb-3 block text-sm font-medium text-gray-700 text-left">
+                            <label htmlFor="name" className="mb-3 block text-sm font-medium text-gray-700">Your name</label>
+                            <input type="text" id="name"
+                                className="block w-full appearance-none rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-blue-500 sm:text-sm"
+                                placeholder='name'
+                                value={name}
+                                onChange={nameChangeHandler}
+                                required
+                            />
+                        </div>
                         <div className="mb-3 block text-sm font-medium text-gray-700 text-left">
                             <label htmlFor="email" className="mb-3 block text-sm font-medium text-gray-700">Your email</label>
-                            <input type="email" id="email" className="block w-full appearance-none rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-blue-500 sm:text-sm" placeholder="name@flowbite.com" required />
+                            <input type="email" id="email"
+                                className="block w-full appearance-none rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-blue-500 sm:text-sm"
+                                placeholder="name@flow.com"
+                                value={email}
+                                onChange={emailChangeHandler}
+                                required />
                         </div>
-                        <div className="mb-3 block text-sm font-medium text-gray-700 text-left">
-                            <label htmlFor="password" className="mb-3 block text-sm font-medium text-gray-700">Your password</label>
-                            <input type="password" id="password" className="block w-full appearance-none rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-blue-500 sm:text-sm" required />
-                        </div>
-
                         <div>
                             <button
                                 type="submit"
@@ -37,15 +90,9 @@ const Login = () => {
                             </button>
                         </div>
                     </form>
-
                 </div>
             </div>
-            <div className="hidden sm:contents lg:relative lg:block lg:flex-1">
-                <img src="" alt="" />
-            </div>
-
         </div>
-
     )
 }
 
