@@ -4,19 +4,22 @@ import './App.css'
 import Login from './components/Login'
 import DogList from './components/Dog/DogList';
 import { AuthContextProvider } from './store/Auth-context'
-import { DogBreedsProvider } from './store/Dog-context';
+import { DogSearchProvider } from './store/Dog-context';
+import DogDemo from './components/DogDemo';
 
 function App() {
   return (
     <Router>
       <AuthContextProvider>
-        <DogBreedsProvider>
+        <DogSearchProvider>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/doglist" element={<DogList />} />
             {/* <Route path=":id" element={<DogDetails />} /> */}
+            <Route path="/dogdemo" element={<DogDemo />} />
+
           </Routes>
-        </DogBreedsProvider>
+        </DogSearchProvider>
       </AuthContextProvider>
     </Router >
   )

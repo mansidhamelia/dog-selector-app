@@ -4,12 +4,16 @@ import { useNavigate } from 'react-router-dom';
 
 interface AuthContextProps {
     isLoggedIn: boolean;
+    // isAuthenticated: boolean;
     onLogin: (name: string, email: string) => Promise<void>;
     onLogout: () => void;
 }
 
+const baseURL = 'https://frontend-take-home-service.fetch.com';
+
 const AuthContext = createContext<AuthContextProps>({
     isLoggedIn: false,
+    // isAuthenticated: false,
     onLogin: async (name: string, email: string) => { },
     onLogout: () => { }
 });
@@ -19,7 +23,7 @@ export const AuthContextProvider = (props) => {
 
     const logoutHandler = async () => {
         try {
-            const response = await fetch('https://frontend-take-home-service.fetch.com/auth/logout', {
+            const response = await fetch(`${baseURL}/auth/logout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -43,7 +47,7 @@ export const AuthContextProvider = (props) => {
     const loginHandler = async (name: string, email: string) => {
 
         try {
-            const response = await fetch('https://frontend-take-home-service.fetch.com/auth/login', {
+            const response = await fetch(`${baseURL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,126 +1,77 @@
-import React, { useState, Fragment, useEffect } from "react"
-import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
-import { MagnifyingGlassIcon, ChevronUpDownIcon, FunnelIcon, MinusIcon, PlusIcon } from '@heroicons/react/20/solid'
+import React, { useState, Fragment, useEffect, useContext } from "react"
+import { Menu, Transition } from '@headlessui/react'
+import { MagnifyingGlassIcon, ChevronUpDownIcon, FunnelIcon } from '@heroicons/react/20/solid'
+import { DogSearchContext } from "../../store/Dog-context"
+
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
-
-const dogs = [
-    {
-        name: 'Lindsay Walton',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 15, email: 1231654, role: 'German shepherd',
-        location: 'India'
-    },
-    {
-        name: 'Anne Marry',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    },
-    {
-        name: 'Bear Bea',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Panda',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Betty Gean',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Goldie',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Tog Waller',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Mattio',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Laica',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Bendy',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Alessandra',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }, {
-        name: 'Jessie',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    },
-    {
-        name: 'Blue Bea',
-        image:
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-        title: 5, email: 125654, role: 'Bull Dog',
-        location: 'Canada'
-    }
-
-]
+interface Match {
+    match: string;
+}
+interface Dog {
+    id: string;
+    img: string;
+    name: string;
+    age: number;
+    zip_code: string;
+    breed: string;
+}
 
 const DogInfo = (props) => {
+    const { searchResults, favoriteDogs, fetchDogs, toggleFavorite, allDogs } = useContext(DogSearchContext);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+    const [matchedDog, setMatchedDog] = useState<Match | null>(null);
 
     const dogsPerPage = 10;
-    const totalPages = Math.ceil(dogs.length / dogsPerPage);
+    const totalPages = Math.ceil(allDogs.length / dogsPerPage);
 
     const handlePreviousPage = () => {
         if (currentPage > 1) {
             setCurrentPage((prevPage) => prevPage - 1);
         }
     };
-
     const handleNextPage = () => {
         if (currentPage < totalPages) {
             setCurrentPage((prevPage) => prevPage + 1);
         }
     };
-
     // Calculate startIndex and endIndex based on currentPage
     const startIndex = (currentPage - 1) * dogsPerPage;
     const endIndex = startIndex + dogsPerPage;
-    const dogsToShow = dogs.slice(startIndex, endIndex);
+    const dogsToShow = allDogs.slice(startIndex, endIndex);
 
     const handleSort = (order) => {
         setSortOrder(order);
     };
 
+
+    const handleMatch = async () => {
+        try {
+            // Call match endpoint with favorite dogs
+            const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/match', {
+                method: 'POST',
+                body: JSON.stringify(favoriteDogs),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                const matchData: Match = await response.json();
+                setMatchedDog(matchData);
+            } else {
+                console.error('Failed to fetch match');
+            }
+        } catch (error) {
+            console.error('Failed to fetch match:', error);
+        }
+    };
 
     return (
         <>
@@ -145,6 +96,8 @@ const DogInfo = (props) => {
                                     placeholder="Search By Breed name"
                                     type="search"
                                     name="search"
+                                // value={searchQuery}
+                                // onChange={handleSearch}
                                 />
                             </div>
                         </form>
@@ -214,65 +167,79 @@ const DogInfo = (props) => {
                         <p className="mt-2 text-sm text-gray-700">
                             A list of all the dogs in your account including their image, name, age, Zip code and breed.
                         </p>
+                        <button onClick={() => fetchDogs()} className="bg-slate-200">Fetch Dogs</button>,
+                        <button onClick={handleMatch} disabled={favoriteDogs.length === 0} className="bg-slate-200">
+                            Search
+                        </button>
                     </div>
                 </div>
-                <div className="mt-8 flow-root">
-                    <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                        <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                            <table className="min-w-full divide-y divide-gray-300">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                            Name
-                                        </th>
-                                        <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                            Age
-                                        </th>
-                                        <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                            Breed
-                                        </th>
-                                        <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
-                                            Location
-                                        </th>
-                                        <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
-                                            Zip code
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {dogsToShow.map((person) => (
-                                        <tr key={person.name}>
-                                            <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                                <div className="flex items-center">
-                                                    <div className="h-11 w-11 flex-shrink-0">
-                                                        <img className="h-11 w-11 rounded-full" src={person.image} alt="" />
-                                                    </div>
-                                                    <div className="ml-4">
-                                                        <div className="font-medium text-gray-900">{person.name}</div>
 
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="whitespace-nowrap  px-3 py-4 text-sm text-gray-500">{person.title}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{person.role}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{person.location}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{person.email}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+
+                {matchedDog ? (
+                    <div>
+                        <h2>Matched Dog:</h2>
+                        <p>{matchedDog.match}</p>
                     </div>
-                </div>
-            </div>
+                ) : (
+                    < div className="mt-8 flow-root">
+                        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                                <table className="min-w-full divide-y divide-gray-300">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                                Name
+                                            </th>
+                                            <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
+                                                Breed
+                                            </th>
+                                            <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
+                                                Age
+                                            </th>
+                                            <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
+                                                Zip code
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {dogsToShow.map((dog) => (
+                                            < tr key={dog.id} >
+                                                <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                    <div className="flex items-center">
+                                                        <div className="h-11 w-11 flex-shrink-0">
+                                                            <img className="h-11 w-11 rounded-full" src={dog.img} alt={dog.name} />
+                                                        </div>
+                                                        <div className="ml-4">
+                                                            <div className="font-medium text-gray-900">{dog.name}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="whitespace-nowrap  px-3 py-4 text-sm text-gray-500">{dog.breed}</td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.age}</td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.zip_code}</td>
+                                                < td onClick={() => toggleFavorite(dog.id)}>
+                                                    <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20"
+                                                    >
+                                                        {favoriteDogs.includes(dog.id) ? 'Remove' : 'Add +'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div >
+                )}
+            </div >
             <nav
                 className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
                 aria-label="Pagination"
             >
                 <div className="hidden sm:block">
                     <p className="text-sm text-gray-700">
-                        Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{Math.min(endIndex, dogs.length)}</span> of{' '}
-                        <span className="font-medium">{dogs.length}</span> results
+                        Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{Math.min(endIndex, allDogs.length)}</span> of{' '}
+                        <span className="font-medium">{allDogs.length}</span> results
                     </p>
                 </div>
                 <div className="flex flex-1 justify-between sm:justify-end">
@@ -285,7 +252,7 @@ const DogInfo = (props) => {
                     </button>
                     <button
                         className="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
-                        disabled={endIndex >= dogs.length}
+                        disabled={endIndex >= allDogs.length}
                         onClick={handleNextPage}
                     >
                         Next

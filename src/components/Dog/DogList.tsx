@@ -6,7 +6,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import DogInfo from "./DogInfoTable";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../store/Auth-context";
-import { useDogBreeds } from "../../store/Dog-context";
+// import { useDogBreeds } from "../../store/Dog-context";
 
 interface Dog {
     id: string;
@@ -16,6 +16,8 @@ interface Dog {
     zip_code: string;
     breed: string;
 }
+
+
 
 const filters = [
     {
@@ -53,15 +55,10 @@ const filters = [
     },
 ]
 
-
-
-const baseURL = 'https://frontend-take-home-service.fetch.com';
-
-
 const DogList = () => {
     const navigate = useNavigate();
     const authCtx = useContext(AuthContext)
-    const dogBreeds = useDogBreeds();
+    // const dogBreeds = useDogBreeds();
 
 
     const [dogs, setDogs] = useState<Dog[]>([]);
@@ -91,8 +88,10 @@ const DogList = () => {
 
 
 
+
+
     return (
-        <div className="w-full">
+        <div className="relative  min-h-full justify-center  md:px-12 lg:px-0 w-full">
             {/* search bar */}
             <div className="sticky top-0 z-40 flex h-16 shrink-0 justify-between items-center gap-x-6 border-b border-white/5 bg-gray-900 px-4 shadow-sm sm:px-6 lg:px-8">
 
@@ -258,19 +257,3 @@ const DogList = () => {
 
 export default DogList
 
-export const getDogs = async (): Promise<Dog[]> => {
-    try {
-        const response = await axios.get(`${baseURL}/dogs/search`);
-        console.log(response)
-        return response.data.resultIds.map((id: string) => ({
-            id,
-            img: '', // Replace with the actual image URL from the API response
-            name: '', // Replace with the actual name from the API response
-            age: 0, // Replace with the actual age from the API response
-            zip_code: '', // Replace with the actual zip code from the API response
-            breed: '', // Replace with the actual breed from the API response
-        }));
-    } catch (error) {
-        throw new Error('Failed to fetch dog list');
-    }
-};
