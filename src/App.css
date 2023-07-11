@@ -8,7 +8,7 @@
 #root {
   margin: 0 auto;
   text-align: center;
- 
+  min-height: inherit;
 }
 
 @media (prefers-reduced-motion: no-preference) {

@@ -19,6 +19,12 @@ interface Dog {
     breed: string;
 }
 
+interface DogFilters {
+    breeds?: string[];
+    zipCodes?: string[];
+    ageMin?: number;
+    ageMax?: number;
+}
 const DogInfo = (props) => {
     const { searchResults, favoriteDogs, fetchDogs, toggleFavorite, allDogs } = useContext(DogSearchContext);
 
@@ -26,6 +32,10 @@ const DogInfo = (props) => {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
     const [matchedDog, setMatchedDog] = useState<Match | null>(null);
+    const [breed, setBreed] = useState('');
+    const [ageMin, setAgeMin] = useState('');
+    const [ageMax, setAgeMax] = useState('');
+    const [location, setLocation] = useState('');
 
     const dogsPerPage = 10;
     const totalPages = Math.ceil(allDogs.length / dogsPerPage);
@@ -49,6 +59,35 @@ const DogInfo = (props) => {
         setSortOrder(order);
     };
 
+    const searchHandler = () => {
+
+        const filters: DogFilters = {};
+
+        if (breed) {
+            filters.breeds = [breed];
+        }
+
+        if (ageMin) {
+            filters.ageMin = Number(ageMin);
+        }
+
+        if (ageMax) {
+            filters.ageMax = Number(ageMax);
+        }
+
+        if (location) {
+            filters.zipCodes = [location];
+        }
+
+        // const filters = {
+        //     breeds: breed ? [breed] : undefined,
+        //     ageMin: ageMin ? Number(ageMin) : undefined,
+        //     ageMax: ageMax ? Number(ageMax) : undefined,
+        //     zipCodes: location ? [location] : undefined,
+        // };
+
+        fetchDogs(filters);
+    };
 
     const handleMatch = async () => {
         try {
@@ -79,30 +118,69 @@ const DogInfo = (props) => {
 
                 {/* search bar */}
                 <div className="sticky top-0  flex h-16 shrink-0 items-center gap-x-6 border-b border-black/10 shadow-sm">
-
                     <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 ">
-                        <form className="flex flex-1" action="#" method="GET">
-                            <label htmlFor="search-field" className="sr-only">
-                                Search
-                            </label>
-                            <div className="relative w-full border-0">
-                                <MagnifyingGlassIcon
-                                    className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-500"
-                                    aria-hidden="true"
-                                />
+                        <form className="flex flex-1 items-center gap-x-1" action="#" method="GET">
+                            <div className="relative w-full">
                                 <input
                                     id="search-field"
-                                    className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                                    placeholder="Search By Breed name"
+                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
+                                    placeholder=" Breed "
                                     type="search"
                                     name="search"
-                                // value={searchQuery}
-                                // onChange={handleSearch}
+                                    value={breed} onChange={e => setBreed(e.target.value)}
                                 />
+                            </div>
+                            <div className="relative  ">
+
+                                <input
+                                    id="search-field"
+                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
+                                    placeholder="Min Age"
+                                    name="search"
+                                    type="search" value={ageMin} onChange={e => setAgeMin(e.target.value)}
+                                />
+                            </div>
+                            {/* <div className="relative  ">
+
+                                <input
+                                    id="search-field"
+                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
+                                    placeholder=" Max Age"
+                                    name="search"
+                                    type="search" value={ageMax} onChange={e => setAgeMin(e.target.value)}
+                                />
+                            </div> */}
+                            <div className="relative w-full">
+
+                                <input
+                                    id="search"
+                                    name="search"
+                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
+                                    placeholder="Location"
+                                    type="search"
+
+                                    value={location} onChange={e => setLocation(e.target.value)} />
                             </div>
                         </form>
                     </div>
-                    <Menu as="div" className="relative">
+
+                    {/* onClick={handleMatch}
+                        onClick={() => fetchDogs()}
+                        disabled={favoriteDogs.length === 0} */}
+
+                    <button
+                        type="button"
+                        className="relative inline-flex items-center gap-x-1.5 rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                        onClick={searchHandler}
+                    >
+                        <MagnifyingGlassIcon
+                            className="-ml-0.5 h-5 w-5"
+                            aria-hidden="true"
+                        />
+                        Search
+                    </button>
+
+                    {/* <Menu as="div" className="relative">
                         <Menu.Button className="flex items-center gap-x-1 text-sm font-medium leading-6 text-gray-900">
                             Sort by
                             <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
@@ -150,7 +228,7 @@ const DogInfo = (props) => {
 
                             </Menu.Items>
                         </Transition>
-                    </Menu>
+                    </Menu> */}
                     <button
                         type="button"
                         className="-m-2 ml-0.5 p-2 text-gray-400 hover:text-gray-500 sm:ml-2 lg:hidden"
@@ -168,9 +246,7 @@ const DogInfo = (props) => {
                             A list of all the dogs in your account including their image, name, age, Zip code and breed.
                         </p>
                         <button onClick={() => fetchDogs()} className="bg-slate-200">Fetch Dogs</button>,
-                        <button onClick={handleMatch} disabled={favoriteDogs.length === 0} className="bg-slate-200">
-                            Search
-                        </button>
+
                     </div>
                 </div>
 
@@ -181,7 +257,7 @@ const DogInfo = (props) => {
                         <p>{matchedDog.match}</p>
                     </div>
                 ) : (
-                    < div className="mt-8 flow-root">
+                    < div className="mt-8 flow-root ">
                         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                                 <table className="min-w-full divide-y divide-gray-300">

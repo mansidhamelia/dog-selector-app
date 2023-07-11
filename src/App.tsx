@@ -15,7 +15,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/doglist" element={<DogList />} />
-            {/* <Route path=":id" element={<DogDetails />} /> */}
             <Route path="/dogdemo" element={<DogDemo />} />
 
           </Routes>

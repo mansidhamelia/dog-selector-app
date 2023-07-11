@@ -91,7 +91,7 @@ const DogList = () => {
 
 
     return (
-        <div className="relative  min-h-full justify-center  md:px-12 lg:px-0 w-full">
+        <div className="relative justify-center  md:px-12 lg:px-0 w-full">
             {/* search bar */}
             <div className="sticky top-0 z-40 flex h-16 shrink-0 justify-between items-center gap-x-6 border-b border-white/5 bg-gray-900 px-4 shadow-sm sm:px-6 lg:px-8">
 
