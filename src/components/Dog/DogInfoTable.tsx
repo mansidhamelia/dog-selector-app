@@ -1,8 +1,9 @@
 import React, { useState, Fragment, useEffect, useContext } from "react"
 import { Menu, Transition } from '@headlessui/react'
-import { MagnifyingGlassIcon, ChevronUpDownIcon, FunnelIcon } from '@heroicons/react/20/solid'
+import { MagnifyingGlassIcon, ChevronUpDownIcon, FunnelIcon, CheckIcon } from '@heroicons/react/20/solid'
 import { DogSearchContext } from "../../store/Dog-context"
-
+import ComboBox from "../BaseComboBox"
+import { Combobox } from '@headlessui/react'
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -24,18 +25,22 @@ interface DogFilters {
     zipCodes?: string[];
     ageMin?: number;
     ageMax?: number;
+    sort?: string;
 }
 const DogInfo = (props) => {
-    const { searchResults, favoriteDogs, fetchDogs, toggleFavorite, allDogs } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
     const [matchedDog, setMatchedDog] = useState<Match | null>(null);
-    const [breed, setBreed] = useState('');
+    const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
+
     const [ageMin, setAgeMin] = useState('');
     const [ageMax, setAgeMax] = useState('');
     const [location, setLocation] = useState('');
+    const [sort, setSort] = useState<'asc' | 'desc'>('asc');
+    const [isSortAscending, setIsSortAscending] = useState(true);
+    // const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
 
     const dogsPerPage = 10;
     const totalPages = Math.ceil(allDogs.length / dogsPerPage);
@@ -55,16 +60,27 @@ const DogInfo = (props) => {
     const endIndex = startIndex + dogsPerPage;
     const dogsToShow = allDogs.slice(startIndex, endIndex);
 
-    const handleSort = (order) => {
-        setSortOrder(order);
-    };
+    useEffect(() => {
+        fetchDogs()
+        fetchBreeds();
+    }, [])
+
+    const [query, setQuery] = useState('');
+
+    const filteredBreed =
+        query === ''
+            ? breeds
+            : breeds.filter((breed) => {
+                return breed.toLowerCase().includes(query.toLowerCase())
+            })
+
 
     const searchHandler = () => {
 
         const filters: DogFilters = {};
 
-        if (breed) {
-            filters.breeds = [breed];
+        if (breeds) {
+            filters.breeds = [selectedBreeds];
         }
 
         if (ageMin) {
@@ -79,15 +95,23 @@ const DogInfo = (props) => {
             filters.zipCodes = [location];
         }
 
-        // const filters = {
-        //     breeds: breed ? [breed] : undefined,
-        //     ageMin: ageMin ? Number(ageMin) : undefined,
-        //     ageMax: ageMax ? Number(ageMax) : undefined,
-        //     zipCodes: location ? [location] : undefined,
-        // };
+        if (sort) {
+            filters.sort = `breed:${sort}`;
+            // setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
+
+        }
 
         fetchDogs(filters);
     };
+
+    const handleSort = () => {
+        console.log('sorting');
+        setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
+    };
+
+    // const handleSelect = (selectedValue: string) => {
+    //     setBreed(selectedValue);
+    // };
 
     const handleMatch = async () => {
         try {
@@ -103,7 +127,29 @@ const DogInfo = (props) => {
 
             if (response.ok) {
                 const matchData: Match = await response.json();
+                const matchId = matchData.match
                 setMatchedDog(matchData);
+
+                // Fetch dog details
+                // const dogResponse = await fetch('https://frontend-take-home-service.fetch.com/dogs', {
+                //     method: 'POST',
+                //     body: JSON.stringify(matchId),
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     credentials: 'include',
+                // });
+
+                // if (dogResponse.ok) {
+                //     const dogData: Dog[] = await dogResponse.json();
+                //     // setAllDogs(dogData);
+                //     // setMatchedDog(dogData)
+
+                // } else {
+                //     console.error('Failed to fetch dog details');
+                // }
+
+
             } else {
                 console.error('Failed to fetch match');
             }
@@ -121,14 +167,62 @@ const DogInfo = (props) => {
                     <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 ">
                         <form className="flex flex-1 items-center gap-x-1" action="#" method="GET">
                             <div className="relative w-full">
-                                <input
+                                {/* <input
                                     id="search-field"
                                     className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
                                     placeholder=" Breed "
                                     type="search"
                                     name="search"
                                     value={breed} onChange={e => setBreed(e.target.value)}
-                                />
+                                /> */}
+
+
+                                <Combobox as="div" value={selectedBreeds} onChange={setSelectedBreeds}>
+                                    <div className="relative mt-2">
+                                        <Combobox.Input
+                                            className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            onChange={(event) => setQuery(event.target.value)}
+                                        />
+                                        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                        </Combobox.Button>
+
+                                        {filteredBreed.length > 0 && (
+                                            <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                {filteredBreed.map((person) => (
+                                                    <Combobox.Option
+                                                        key={person}
+                                                        value={person}
+                                                        className={({ active }) =>
+                                                            classNames(
+                                                                'relative cursor-default select-none py-2 pl-3 pr-9',
+                                                                active ? 'bg-indigo-600 text-white' : 'text-gray-900'
+                                                            )
+                                                        }
+                                                    >
+                                                        {({ active, selected }) => (
+                                                            <>
+                                                                <span className={classNames('block truncate', selected && 'font-semibold')}>{person}</span>
+
+                                                                {selected && (
+                                                                    <span
+                                                                        className={classNames(
+                                                                            'absolute inset-y-0 right-0 flex items-center pr-4',
+                                                                            active ? 'text-white' : 'text-indigo-600'
+                                                                        )}
+                                                                    >
+                                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                    </span>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </Combobox.Option>
+                                                ))}
+                                            </Combobox.Options>
+                                        )}
+                                    </div>
+                                </Combobox>
+
                             </div>
                             <div className="relative  ">
 
@@ -180,63 +274,14 @@ const DogInfo = (props) => {
                         Search
                     </button>
 
-                    {/* <Menu as="div" className="relative">
-                        <Menu.Button className="flex items-center gap-x-1 text-sm font-medium leading-6 text-gray-900">
-                            Sort by
-                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
-                        </Menu.Button>
-                        <Transition
-                            as={Fragment}
-                            enter="transition ease-out duration-100"
-                            enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-100 scale-100"
-                            leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                        >
-                            <Menu.Items className="absolute right-0 z-10 mt-2.5 w-40 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <a
-                                            href="#"
-                                            className={classNames(
-                                                active ? 'bg-gray-50' : '',
-                                                'block px-3 py-1 text-sm leading-6 text-gray-900'
-                                            )}
-                                            onClick={() => handleSort('asc')}
-
-                                        >
-                                            Ascending
-                                        </a>
-                                    )}
-                                </Menu.Item>
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <a
-                                            href="#"
-                                            className={classNames(
-                                                active ? 'bg-gray-50' : '',
-                                                'block px-3 py-1 text-sm leading-6 text-gray-900'
-                                            )}
-                                            onClick={() => handleSort('desc')}
-
-                                        >
-                                            Descending
-                                        </a>
-                                    )}
-                                </Menu.Item>
-
-                            </Menu.Items>
-                        </Transition>
-                    </Menu> */}
-                    <button
+                    {/* <button
                         type="button"
                         className="-m-2 ml-0.5 p-2 text-gray-400 hover:text-gray-500 sm:ml-2 lg:hidden"
                         onClick={() => setMobileFiltersOpen(true)}
                     >
                         <span className="sr-only">Filters</span>
                         <FunnelIcon className="h-5 w-5" aria-hidden="true" />
-                    </button>
+                    </button> */}
                 </div>
 
                 <div className="sm:flex sm:items-center">
@@ -245,8 +290,10 @@ const DogInfo = (props) => {
                         <p className="mt-2 text-sm text-gray-700">
                             A list of all the dogs in your account including their image, name, age, Zip code and breed.
                         </p>
-                        <button onClick={() => fetchDogs()} className="bg-slate-200">Fetch Dogs</button>,
-
+                        {/* <button onClick={() => fetchDogs()} className="bg-slate-200">Fetch Dogs</button>, */}
+                        <button onClick={handleMatch} disabled={favoriteDogs.length === 0}>
+                            Generate Match
+                        </button>
                     </div>
                 </div>
 
@@ -267,7 +314,12 @@ const DogInfo = (props) => {
                                                 Name
                                             </th>
                                             <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                                Breed
+                                                <a href="#" className="group inline-flex">
+                                                    Breed
+                                                    <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
+                                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={handleSort} />
+                                                    </span>
+                                                </a>
                                             </th>
                                             <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
                                                 Age
@@ -275,6 +327,7 @@ const DogInfo = (props) => {
                                             <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
                                                 Zip code
                                             </th>
+                                            {/* Please enter a valid zip / postal or city, state (2 letter state). */}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
@@ -294,7 +347,7 @@ const DogInfo = (props) => {
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.age}</td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.zip_code}</td>
                                                 < td onClick={() => toggleFavorite(dog.id)}>
-                                                    <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20"
+                                                    <span className="inline-flex items-center cursor-pointer rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20"
                                                     >
                                                         {favoriteDogs.includes(dog.id) ? 'Remove' : 'Add +'}
                                                     </span>
@@ -319,7 +372,7 @@ const DogInfo = (props) => {
                     </p>
                 </div>
                 <div className="flex flex-1 justify-between sm:justify-end">
-                    <button
+                    {/* <button
                         className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
                         disabled={currentPage === 1}
                         onClick={handlePreviousPage}
@@ -332,7 +385,11 @@ const DogInfo = (props) => {
                         onClick={handleNextPage}
                     >
                         Next
-                    </button>
+                    </button> */}
+
+                    {/* {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev)}>Prev</button>}
+                    {searchResults.next && <button onClick={() => fetchDogs(searchResults.next)}>Next</button>} */}
+
                 </div>
             </nav>
         </>
