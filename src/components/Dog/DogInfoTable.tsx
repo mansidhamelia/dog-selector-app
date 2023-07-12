@@ -2,7 +2,7 @@ import React, { useState, Fragment, useEffect, useContext } from "react"
 import { Menu, Transition } from '@headlessui/react'
 import { MagnifyingGlassIcon, ChevronUpDownIcon, FunnelIcon, CheckIcon } from '@heroicons/react/20/solid'
 import { DogSearchContext } from "../../store/Dog-context"
-import ComboBox from "../BaseComboBox"
+import BaseComboBox from "../BaseComboBox"
 import { Combobox } from '@headlessui/react'
 
 function classNames(...classes) {
@@ -28,10 +28,9 @@ interface DogFilters {
     sort?: string;
 }
 const DogInfo = (props) => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, toggleFavorite, allDogs, breeds, setSorting, sorting } = useContext(DogSearchContext);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
     const [matchedDog, setMatchedDog] = useState<Match | null>(null);
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
 
@@ -39,10 +38,11 @@ const DogInfo = (props) => {
     const [ageMax, setAgeMax] = useState('');
     const [location, setLocation] = useState('');
     const [sort, setSort] = useState<'asc' | 'desc'>('asc');
-    const [isSortAscending, setIsSortAscending] = useState(true);
+    // const [loading, setLoading] = useState(false);
+
     // const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
 
-    const dogsPerPage = 10;
+    const dogsPerPage = 25;
     const totalPages = Math.ceil(allDogs.length / dogsPerPage);
 
     const handlePreviousPage = () => {
@@ -63,6 +63,8 @@ const DogInfo = (props) => {
     useEffect(() => {
         fetchDogs()
         fetchBreeds();
+        console.log(searchResults, 'res');
+
     }, [])
 
     const [query, setQuery] = useState('');
@@ -79,26 +81,22 @@ const DogInfo = (props) => {
 
         const filters: DogFilters = {};
 
-        if (breeds) {
+        if (selectedBreeds.length > 0) {
             filters.breeds = [selectedBreeds];
         }
-
         if (ageMin) {
             filters.ageMin = Number(ageMin);
         }
-
         if (ageMax) {
             filters.ageMax = Number(ageMax);
         }
-
         if (location) {
             filters.zipCodes = [location];
         }
-
         if (sort) {
+            setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
             filters.sort = `breed:${sort}`;
             // setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
-
         }
 
         fetchDogs(filters);
@@ -107,12 +105,14 @@ const DogInfo = (props) => {
     const handleSort = () => {
         console.log('sorting');
         setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
+        searchHandler()
     };
 
     // const handleSelect = (selectedValue: string) => {
-    //     setBreed(selectedValue);
+    //     setSelectedBreeds(selectedValue);
     // };
 
+    // Fetch a match
     const handleMatch = async () => {
         try {
             // Call match endpoint with favorite dogs
@@ -167,21 +167,12 @@ const DogInfo = (props) => {
                     <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 ">
                         <form className="flex flex-1 items-center gap-x-1" action="#" method="GET">
                             <div className="relative w-full">
-                                {/* <input
-                                    id="search-field"
-                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
-                                    placeholder=" Breed "
-                                    type="search"
-                                    name="search"
-                                    value={breed} onChange={e => setBreed(e.target.value)}
-                                /> */}
-
-
                                 <Combobox as="div" value={selectedBreeds} onChange={setSelectedBreeds}>
-                                    <div className="relative mt-2">
+                                    <div className="relative">
                                         <Combobox.Input
-                                            className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                             onChange={(event) => setQuery(event.target.value)}
+                                            placeholder="Breed"
                                         />
                                         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
                                             <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -196,7 +187,7 @@ const DogInfo = (props) => {
                                                         className={({ active }) =>
                                                             classNames(
                                                                 'relative cursor-default select-none py-2 pl-3 pr-9',
-                                                                active ? 'bg-indigo-600 text-white' : 'text-gray-900'
+                                                                active ? 'bg-gray-600 text-white' : 'text-gray-900'
                                                             )
                                                         }
                                                     >
@@ -208,7 +199,7 @@ const DogInfo = (props) => {
                                                                     <span
                                                                         className={classNames(
                                                                             'absolute inset-y-0 right-0 flex items-center pr-4',
-                                                                            active ? 'text-white' : 'text-indigo-600'
+                                                                            active ? 'text-white' : 'text-gray-600'
                                                                         )}
                                                                     >
                                                                         <CheckIcon className="h-5 w-5" aria-hidden="true" />
@@ -222,10 +213,8 @@ const DogInfo = (props) => {
                                         )}
                                     </div>
                                 </Combobox>
-
                             </div>
                             <div className="relative  ">
-
                                 <input
                                     id="search-field"
                                     className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
@@ -234,25 +223,22 @@ const DogInfo = (props) => {
                                     type="search" value={ageMin} onChange={e => setAgeMin(e.target.value)}
                                 />
                             </div>
-                            {/* <div className="relative  ">
-
+                            <div className="relative  ">
                                 <input
                                     id="search-field"
-                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
+                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm sm:leading-6"
                                     placeholder=" Max Age"
                                     name="search"
-                                    type="search" value={ageMax} onChange={e => setAgeMin(e.target.value)}
+                                    type="search" value={ageMax} onChange={e => setAgeMax(e.target.value)}
                                 />
-                            </div> */}
+                            </div>
                             <div className="relative w-full">
-
                                 <input
                                     id="search"
                                     name="search"
-                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
-                                    placeholder="Location"
+                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm sm:leading-6"
+                                    placeholder="ZipCode, City, State (ex: MI)"
                                     type="search"
-
                                     value={location} onChange={e => setLocation(e.target.value)} />
                             </div>
                         </form>
@@ -285,13 +271,17 @@ const DogInfo = (props) => {
                 </div>
 
                 <div className="sm:flex sm:items-center">
-                    <div className="sm:flex-auto text-left mt-4">
-                        <h1 className="text-base font-semibold leading-6 text-gray-900">Dogs</h1>
-                        <p className="mt-2 text-sm text-gray-700">
-                            A list of all the dogs in your account including their image, name, age, Zip code and breed.
-                        </p>
-                        {/* <button onClick={() => fetchDogs()} className="bg-slate-200">Fetch Dogs</button>, */}
-                        <button onClick={handleMatch} disabled={favoriteDogs.length === 0}>
+                    <div className="sm:flex-auto text-left mt-4 flex justify-between">
+                        <div>
+                            <h1 className="text-base font-semibold leading-6 text-gray-900">Dogs</h1>
+                            <p className="mt-2 text-sm text-gray-700">
+                                A list of all the dogs in your account including their image, name, age, Zip code and breed.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            className=" items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                            onClick={handleMatch} disabled={favoriteDogs.length === 0}                    >
                             Generate Match
                         </button>
                     </div>
@@ -317,7 +307,7 @@ const DogInfo = (props) => {
                                                 <a href="#" className="group inline-flex">
                                                     Breed
                                                     <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={handleSort} />
+                                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={searchHandler} />
                                                     </span>
                                                 </a>
                                             </th>
@@ -331,7 +321,7 @@ const DogInfo = (props) => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
-                                        {dogsToShow.map((dog) => (
+                                        {allDogs.map((dog) => (
                                             < tr key={dog.id} >
                                                 <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                     <div className="flex items-center">
@@ -367,8 +357,8 @@ const DogInfo = (props) => {
             >
                 <div className="hidden sm:block">
                     <p className="text-sm text-gray-700">
-                        Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{Math.min(endIndex, allDogs.length)}</span> of{' '}
-                        <span className="font-medium">{allDogs.length}</span> results
+                        Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{allDogs.length}</span> of{' '}
+                        <span className="font-medium">{searchResults.total}</span> results
                     </p>
                 </div>
                 <div className="flex flex-1 justify-between sm:justify-end">
@@ -387,8 +377,8 @@ const DogInfo = (props) => {
                         Next
                     </button> */}
 
-                    {/* {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev)}>Prev</button>}
-                    {searchResults.next && <button onClick={() => fetchDogs(searchResults.next)}>Next</button>} */}
+                    {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev)}>Prev</button>}
+                    {searchResults.next && <button onClick={() => fetchDogs(searchResults.next.split('?')[1])}>Next</button>}
 
                 </div>
             </nav>

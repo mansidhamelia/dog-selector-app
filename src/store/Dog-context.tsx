@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import AuthContext from './Auth-context';
 
 
@@ -7,7 +7,14 @@ interface DogBreedsContextType {
     dogIds: number[];
 }
 
-
+interface Location {
+    zip_code: string;
+    latitude: number;
+    longitude: number;
+    city: string;
+    state: string;
+    county: string;
+}
 interface Dog {
     id: string;
     img: string;
@@ -35,18 +42,23 @@ interface DogFilters {
 }
 
 interface DogSearchContextProps {
+    breeds: string[],
     allDogs: Dog[],
-    searchResults: Dog[];
+    searchResults: SearchResult[];
     favoriteDogs: string[];
     fetchDogs: (filters?: DogFilters) => void;
+    fetchBreeds: () => void;
     toggleFavorite: (dogId: string) => void;
 }
 
 export const DogSearchContext = createContext<DogSearchContextProps>({
+    breeds: [],
     allDogs: [],
     searchResults: [],
     favoriteDogs: [],
     fetchDogs: () => { },
+    fetchBreeds: () => { },
+
     toggleFavorite: () => { },
 });
 
@@ -54,27 +66,42 @@ export const DogSearchContext = createContext<DogSearchContextProps>({
 const baseURL = 'https://frontend-take-home-service.fetch.com';
 
 
-// export function useDogBreeds() {
-//     const context = useContext(DogBreedsContext);
-//     if (!context) {
-//         throw new Error('useDogBreeds must be used within a DogBreedsProvider');
-//     }
-//     return context;
-// }
-
-// export const DogSearchProvider: React.FC = ({ children }) => {
 export function DogSearchProvider({ children }) {
     const { isLoggedIn } = useContext(AuthContext);
-    const [searchResults, setSearchResults] = useState<Dog[]>([]);
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [allDogs, setAllDogs] = useState<Dog[]>([]);
+    const [breeds, setBreeds] = useState<string[]>([]);
 
     const [favoriteDogs, setFavoriteDogs] = useState<string[]>([]);
     const [dogs, setDogs] = useState<Dog[]>([]);
     const [matchedDog, setMatchedDog] = useState<Match | null>(null);
 
+    const [loading, setLoading] = useState(false);
+
+
+
+    // Fetch dog breeds
+    const fetchBreeds = async () => {
+        try {
+            const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/breeds', {
+                credentials: 'include',
+            });
+            if (response.ok) {
+                const data = await response.json();
+
+                setBreeds(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch dog breeds:', error);
+        }
+    };
+
+
+    // Fetch search results
     const fetchDogs = async (filters?: DogFilters) => {
         // Fetch dogs based on the provided filters
         try {
+            setLoading(true);
             // Build the query string for filters
             let queryString = '';
             if (filters) {
@@ -96,6 +123,7 @@ export function DogSearchProvider({ children }) {
             if (response.ok) {
                 const data: SearchResult = await response.json();
                 const dogIds = data.resultIds;
+                setSearchResults(data);
 
                 // Fetch dog details
                 const dogResponse = await fetch('https://frontend-take-home-service.fetch.com/dogs', {
@@ -119,7 +147,9 @@ export function DogSearchProvider({ children }) {
         } catch (error) {
             console.error('Failed to fetch dogs:', error);
         }
-
+        finally {
+            setLoading(false);
+        }
     };
 
     const toggleFavorite = (dogId: string) => {
@@ -134,11 +164,30 @@ export function DogSearchProvider({ children }) {
         });
     };
 
+    // Fetch a match
+    const fetchMatch = async () => {
+        try {
+            const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/match', {
+                method: 'POST',
+                body: JSON.stringify(dogs.map((dog) => dog.id)),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+            if (response.ok) {
+                const data: Match = await response.json();
+                console.log('Match:', data.match);
+            }
+        } catch (error) {
+            console.error('Failed to fetch match:', error);
+        }
+    };
 
 
 
     return (
-        <DogSearchContext.Provider value={{ searchResults, favoriteDogs, fetchDogs, toggleFavorite, allDogs }}>
+        <DogSearchContext.Provider value={{ breeds, searchResults, favoriteDogs, fetchBreeds, fetchDogs, toggleFavorite, allDogs }}>
             {children}
         </DogSearchContext.Provider>
     );
