@@ -33,27 +33,31 @@ interface DogFilters {
     zipCodes?: string[];
     ageMin?: number;
     ageMax?: number;
-    sort,
+    sort?: string,
 }
 
 interface DogSearchContextProps {
     breeds: string[],
     allDogs: Dog[],
     searchResults: SearchResult[];
+    searchLocations: Location[];
     favoriteDogs: string[];
     fetchDogs: (filters?: DogFilters) => void;
     fetchBreeds: () => void;
     toggleFavorite: (dogId: string) => void;
+    fetchLocations: () => void;
 }
 
 export const DogSearchContext = createContext<DogSearchContextProps>({
     breeds: [],
     allDogs: [],
     searchResults: [],
+    searchLocations: [],
     favoriteDogs: [],
     fetchDogs: () => { },
     fetchBreeds: () => { },
     toggleFavorite: () => { },
+    fetchLocations: () => { }
 });
 
 const baseURL = 'https://frontend-take-home-service.fetch.com';
@@ -64,7 +68,7 @@ export function DogSearchProvider({ children }) {
     const [allDogs, setAllDogs] = useState<Dog[]>([]);
     const [breeds, setBreeds] = useState<string[]>([]);
     const [searchLocations, setSearchLocations] = useState<Location[]>([]);
-    const [zipCodes, setZipCodes] = useState<string[]>([]);
+    // const [zipCodes, setZipCodes] = useState<string[]>([]);
     const [favoriteDogs, setFavoriteDogs] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -153,31 +157,30 @@ export function DogSearchProvider({ children }) {
     };
 
     // fetch location
-    const handleLocationsPost = async () => {
+    const fetchLocations = async () => {
+        const requestBody: { [key: string]: any } = {};
         try {
-            const response = await fetch(`${baseURL}/locations`, {
+            const response = await fetch(`${baseURL}/locations/search`, {
                 method: 'POST',
-                body: JSON.stringify(zipCodes),
+                body: JSON.stringify(requestBody),
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-
             });
-
             if (response.ok) {
-                const locationsData: Location[] = await response.json();
-                setSearchLocations(locationsData);
+                const searchResultsData: { results: Location[]; total: number } = await response.json();
+                setSearchLocations(searchResultsData.results);
             } else {
-                console.error('Failed to fetch locations');
+                console.error('Failed to search locations');
             }
         } catch (error) {
-            console.error('Failed to fetch locations:', error);
+            console.error('Failed to search locations:', error);
         }
     };
 
     return (
-        <DogSearchContext.Provider value={{ breeds, searchResults, favoriteDogs, fetchBreeds, fetchDogs, toggleFavorite, allDogs }}>
+        <DogSearchContext.Provider value={{ breeds, searchResults, favoriteDogs, fetchBreeds, fetchDogs, fetchLocations, searchLocations, toggleFavorite, allDogs }}>
             {children}
         </DogSearchContext.Provider>
     );

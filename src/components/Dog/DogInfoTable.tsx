@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from "react"
-import { MagnifyingGlassIcon, ChevronUpDownIcon, FunnelIcon, CheckIcon } from '@heroicons/react/20/solid'
+import { MagnifyingGlassIcon, ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid'
 import { DogSearchContext } from "../../store/Dog-context"
 import { Combobox } from '@headlessui/react'
+import MatchedDogModal from "./MatchedDog"
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -17,15 +18,16 @@ interface DogFilters {
     sort?: string;
 }
 const DogInfo = (props) => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [matchedDog, setMatchedDog] = useState<Match | null>(null);
+    const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
     const [ageMin, setAgeMin] = useState('');
     const [ageMax, setAgeMax] = useState('');
     const [location, setLocation] = useState('');
     const [sort, setSort] = useState<'asc' | 'desc'>('asc');
+    const [selectedLocation, setSelectedLocation] = useState('');
 
 
     // Calculate startIndex and endIndex based on currentPage
@@ -38,6 +40,7 @@ const DogInfo = (props) => {
     useEffect(() => {
         fetchDogs()
         fetchBreeds();
+        fetchLocations()
     }, [])
 
     const [query, setQuery] = useState('');
@@ -63,8 +66,8 @@ const DogInfo = (props) => {
         if (ageMax) {
             filters.ageMax = Number(ageMax);
         }
-        if (location) {
-            filters.zipCodes = [location];
+        if (selectedLocation.length > 0) {
+            filters.zipCodes = [selectedLocation];
         }
         if (sort) {
             filters.sort = `breed:${sort}`;
@@ -91,7 +94,11 @@ const DogInfo = (props) => {
             if (response.ok) {
                 const matchData: Match = await response.json();
                 const matchId = matchData.match
-                setMatchedDog(matchData);
+                console.log(allDogs, 'dogs');
+                if (matchId) {
+                    const res = allDogs.find((dog) => dog.id === matchId);
+                    setMatchedDog(res)
+                }
             } else {
                 console.error('Failed to fetch match');
             }
@@ -156,7 +163,7 @@ const DogInfo = (props) => {
                             <div className="relative  ">
                                 <input
                                     id="search-field"
-                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm sm:leading-6"
+                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 text-sm"
                                     placeholder="Min Age"
                                     name="search"
                                     type="search" value={ageMin} onChange={e => setAgeMin(e.target.value)}
@@ -172,14 +179,50 @@ const DogInfo = (props) => {
                                 />
                             </div>
                             <div className="relative w-2/3">
-                                <input
-                                    id="search"
-                                    name="search"
-                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm sm:leading-6"
-                                    // placeholder="Location(i.e. Los Angeles, CA or 90210)"
-                                    placeholder="Please enter a valid zip Code"
-                                    type="search"
-                                    value={location} onChange={e => setLocation(e.target.value)} />
+                                <Combobox as="div" value={selectedLocation} onChange={setSelectedLocation} >
+                                    <div className="relative">
+                                        <Combobox.Input
+                                            className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
+                                            onChange={(event) => setQuery(event.target.value)}
+                                            placeholder="Location(i.e. Los Angeles or 90210)"
+                                        />
+                                        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                        </Combobox.Button>
+                                        {searchLocations.length > 0 && (
+                                            <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                {searchLocations.map((location) => (
+                                                    <Combobox.Option
+                                                        key={location.zip_code}
+                                                        value={location.zip_code}
+                                                        className={({ active }) =>
+                                                            classNames(
+                                                                'relative cursor-default select-none py-2 pl-3 pr-9',
+                                                                active ? 'bg-gray-600 text-white' : 'text-gray-900'
+                                                            )
+                                                        }
+                                                    >
+                                                        {({ active, selected }) => (
+                                                            <>
+                                                                <span className={classNames('block truncate', selected && 'font-semibold')}>{location.city}</span>
+                                                                {selected && (
+                                                                    <span
+                                                                        className={classNames(
+                                                                            'absolute inset-y-0 right-0 flex items-center pr-4',
+                                                                            active ? 'text-white' : 'text-gray-600'
+                                                                        )}
+                                                                    >
+                                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                    </span>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </Combobox.Option>
+                                                ))}
+                                            </Combobox.Options>
+                                        )}
+                                    </div>
+                                </Combobox>
                             </div>
                         </form>
                     </div>
@@ -216,87 +259,91 @@ const DogInfo = (props) => {
 
                 {matchedDog ? (
                     <div>
-                        <h2>Matched Dog:</h2>
-                        <p>{matchedDog.match}</p>
+                        <MatchedDogModal dog={matchedDog} />
                     </div>
                 ) : (
                     < div className="mt-8 flow-root ">
                         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                                <table className="min-w-full divide-y divide-gray-300">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                Name
-                                            </th>
-                                            <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                                <a href="#" className="group inline-flex">
-                                                    Breed
-                                                    <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={handleSort} />
-                                                    </span>
-                                                </a>
-                                            </th>
-                                            <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                                Age
-                                            </th>
-                                            <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
-                                                Zip code
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                        {allDogs
-                                            .sort((a, b) => a.breed.localeCompare(b.breed))
-                                            .map((dog) => (
-                                                < tr key={dog.id} >
-                                                    <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                                        <div className="flex items-center">
-                                                            <div className="h-11 w-11 flex-shrink-0">
-                                                                <img className="h-11 w-11 rounded-full" src={dog.img} alt={dog.name} />
-                                                            </div>
-                                                            <div className="ml-4">
-                                                                <div className="font-medium text-gray-900">{dog.name}</div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="whitespace-nowrap  px-3 py-4 text-sm text-gray-500">{dog.breed}</td>
-                                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.age}</td>
-                                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.zip_code}</td>
-                                                    < td onClick={() => toggleFavorite(dog.id)}>
-                                                        <span className="inline-flex items-center cursor-pointer rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20"
-                                                        >
-                                                            {favoriteDogs.includes(dog.id) ? 'Remove' : 'Add +'}
+                                {allDogs.length == 0 ?
+                                    <p>No more data with this filter.</p>
+                                    :
+                                    <table className="min-w-full divide-y divide-gray-300">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                                    Name
+                                                </th>
+                                                <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
+                                                    <a href="#" className="group inline-flex">
+                                                        Breed
+                                                        <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
+                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={handleSort} />
                                                         </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
+                                                    </a>
+                                                </th>
+                                                <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
+                                                    Age
+                                                </th>
+                                                <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
+                                                    Zip code
+                                                </th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody className="divide-y divide-gray-200">
+                                            {allDogs
+                                                .sort((a, b) => a.breed.localeCompare(b.breed))
+                                                .map((dog) => (
+                                                    < tr key={dog.id} >
+                                                        <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                            <div className="flex items-center">
+                                                                <div className="h-11 w-11 flex-shrink-0">
+                                                                    <img className="h-11 w-11 rounded-full" src={dog.img} alt={dog.name} />
+                                                                </div>
+                                                                <div className="ml-4">
+                                                                    <div className="font-medium text-gray-900">{dog.name}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="whitespace-nowrap  px-3 py-4 text-sm text-gray-500">{dog.breed}</td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.age}</td>
+                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.zip_code}</td>
+                                                        < td onClick={() => toggleFavorite(dog.id)}>
+                                                            <span className="inline-flex items-center cursor-pointer rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20"
+                                                            >
+                                                                {favoriteDogs.includes(dog.id) ? 'Remove' : 'Add +'}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </table>}
                             </div>
                         </div>
+
+                        <nav
+                            className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
+                            aria-label="Pagination"
+                        >
+                            <div className="hidden sm:block">
+                                <p className="text-sm text-gray-700">
+                                    Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{allDogs.length}</span> of{' '}
+                                    <span className="font-medium">{searchResults.total}</span> results
+                                </p>
+                            </div>
+                            <div className="flex flex-1 justify-between sm:justify-end">
+                                {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev)}>Prev</button>}
+                                {searchResults.next && <button onClick={() => fetchDogs(searchResults.next.split('?')[1])}>Next</button>}
+
+                            </div>
+                        </nav>
                     </div >
                 )}
             </div >
 
             {/* {searchResults.next || searchResults.next && */}
-            <nav
-                className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
-                aria-label="Pagination"
-            >
-                <div className="hidden sm:block">
-                    <p className="text-sm text-gray-700">
-                        Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{allDogs.length}</span> of{' '}
-                        <span className="font-medium">{searchResults.total}</span> results
-                    </p>
-                </div>
-                <div className="flex flex-1 justify-between sm:justify-end">
 
-                    {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev)}>Prev</button>}
-                    {searchResults.next && <button onClick={() => fetchDogs(searchResults.next.split('?')[1])}>Next</button>}
-
-                </div>
-            </nav>
             {/* } */}
         </>
     )
