@@ -1,8 +1,6 @@
-import React, { useState, Fragment, useEffect, useContext } from "react"
-import { Menu, Transition } from '@headlessui/react'
+import React, { useState, useEffect, useContext } from "react"
 import { MagnifyingGlassIcon, ChevronUpDownIcon, FunnelIcon, CheckIcon } from '@heroicons/react/20/solid'
 import { DogSearchContext } from "../../store/Dog-context"
-import BaseComboBox from "../BaseComboBox"
 import { Combobox } from '@headlessui/react'
 
 function classNames(...classes) {
@@ -11,15 +9,6 @@ function classNames(...classes) {
 interface Match {
     match: string;
 }
-interface Dog {
-    id: string;
-    img: string;
-    name: string;
-    age: number;
-    zip_code: string;
-    breed: string;
-}
-
 interface DogFilters {
     breeds?: string[];
     zipCodes?: string[];
@@ -28,34 +17,20 @@ interface DogFilters {
     sort?: string;
 }
 const DogInfo = (props) => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, toggleFavorite, allDogs, breeds, setSorting, sorting } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [matchedDog, setMatchedDog] = useState<Match | null>(null);
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
-
     const [ageMin, setAgeMin] = useState('');
     const [ageMax, setAgeMax] = useState('');
     const [location, setLocation] = useState('');
     const [sort, setSort] = useState<'asc' | 'desc'>('asc');
-    // const [loading, setLoading] = useState(false);
 
-    // const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
 
+    // Calculate startIndex and endIndex based on currentPage
     const dogsPerPage = 25;
     const totalPages = Math.ceil(allDogs.length / dogsPerPage);
-
-    const handlePreviousPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage((prevPage) => prevPage - 1);
-        }
-    };
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage((prevPage) => prevPage + 1);
-        }
-    };
-    // Calculate startIndex and endIndex based on currentPage
     const startIndex = (currentPage - 1) * dogsPerPage;
     const endIndex = startIndex + dogsPerPage;
     const dogsToShow = allDogs.slice(startIndex, endIndex);
@@ -63,8 +38,6 @@ const DogInfo = (props) => {
     useEffect(() => {
         fetchDogs()
         fetchBreeds();
-        console.log(searchResults, 'res');
-
     }, [])
 
     const [query, setQuery] = useState('');
@@ -94,28 +67,19 @@ const DogInfo = (props) => {
             filters.zipCodes = [location];
         }
         if (sort) {
-            setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
             filters.sort = `breed:${sort}`;
-            // setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
         }
-
         fetchDogs(filters);
     };
 
     const handleSort = () => {
-        console.log('sorting');
         setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
         searchHandler()
     };
 
-    // const handleSelect = (selectedValue: string) => {
-    //     setSelectedBreeds(selectedValue);
-    // };
-
     // Fetch a match
     const handleMatch = async () => {
         try {
-            // Call match endpoint with favorite dogs
             const response = await fetch('https://frontend-take-home-service.fetch.com/dogs/match', {
                 method: 'POST',
                 body: JSON.stringify(favoriteDogs),
@@ -124,32 +88,10 @@ const DogInfo = (props) => {
                 },
                 credentials: 'include',
             });
-
             if (response.ok) {
                 const matchData: Match = await response.json();
                 const matchId = matchData.match
                 setMatchedDog(matchData);
-
-                // Fetch dog details
-                // const dogResponse = await fetch('https://frontend-take-home-service.fetch.com/dogs', {
-                //     method: 'POST',
-                //     body: JSON.stringify(matchId),
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     credentials: 'include',
-                // });
-
-                // if (dogResponse.ok) {
-                //     const dogData: Dog[] = await dogResponse.json();
-                //     // setAllDogs(dogData);
-                //     // setMatchedDog(dogData)
-
-                // } else {
-                //     console.error('Failed to fetch dog details');
-                // }
-
-
             } else {
                 console.error('Failed to fetch match');
             }
@@ -161,12 +103,11 @@ const DogInfo = (props) => {
     return (
         <>
             <div className="px-4 sm:px-6 lg:px-8 ">
-
                 {/* search bar */}
                 <div className="sticky top-0  flex h-16 shrink-0 items-center gap-x-6 border-b border-black/10 shadow-sm">
                     <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 ">
-                        <form className="flex flex-1 items-center gap-x-1" action="#" method="GET">
-                            <div className="relative w-full">
+                        <form className="flex flex-1 justify-evenly items-center gap-x-1" action="#" method="GET">
+                            <div className="relative w-2/3">
                                 <Combobox as="div" value={selectedBreeds} onChange={setSelectedBreeds}>
                                     <div className="relative">
                                         <Combobox.Input
@@ -177,7 +118,6 @@ const DogInfo = (props) => {
                                         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
                                             <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                                         </Combobox.Button>
-
                                         {filteredBreed.length > 0 && (
                                             <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                                 {filteredBreed.map((person) => (
@@ -194,7 +134,6 @@ const DogInfo = (props) => {
                                                         {({ active, selected }) => (
                                                             <>
                                                                 <span className={classNames('block truncate', selected && 'font-semibold')}>{person}</span>
-
                                                                 {selected && (
                                                                     <span
                                                                         className={classNames(
@@ -226,28 +165,24 @@ const DogInfo = (props) => {
                             <div className="relative  ">
                                 <input
                                     id="search-field"
-                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm sm:leading-6"
-                                    placeholder=" Max Age"
+                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
+                                    placeholder="Max Age"
                                     name="search"
                                     type="search" value={ageMax} onChange={e => setAgeMax(e.target.value)}
                                 />
                             </div>
-                            <div className="relative w-full">
+                            <div className="relative w-2/3">
                                 <input
                                     id="search"
                                     name="search"
                                     className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm sm:leading-6"
-                                    placeholder="ZipCode, City, State (ex: MI)"
+                                    // placeholder="Location(i.e. Los Angeles, CA or 90210)"
+                                    placeholder="Please enter a valid zip Code"
                                     type="search"
                                     value={location} onChange={e => setLocation(e.target.value)} />
                             </div>
                         </form>
                     </div>
-
-                    {/* onClick={handleMatch}
-                        onClick={() => fetchDogs()}
-                        disabled={favoriteDogs.length === 0} */}
-
                     <button
                         type="button"
                         className="relative inline-flex items-center gap-x-1.5 rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
@@ -259,15 +194,6 @@ const DogInfo = (props) => {
                         />
                         Search
                     </button>
-
-                    {/* <button
-                        type="button"
-                        className="-m-2 ml-0.5 p-2 text-gray-400 hover:text-gray-500 sm:ml-2 lg:hidden"
-                        onClick={() => setMobileFiltersOpen(true)}
-                    >
-                        <span className="sr-only">Filters</span>
-                        <FunnelIcon className="h-5 w-5" aria-hidden="true" />
-                    </button> */}
                 </div>
 
                 <div className="sm:flex sm:items-center">
@@ -307,7 +233,7 @@ const DogInfo = (props) => {
                                                 <a href="#" className="group inline-flex">
                                                     Breed
                                                     <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={searchHandler} />
+                                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={handleSort} />
                                                     </span>
                                                 </a>
                                             </th>
@@ -317,33 +243,34 @@ const DogInfo = (props) => {
                                             <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
                                                 Zip code
                                             </th>
-                                            {/* Please enter a valid zip / postal or city, state (2 letter state). */}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
-                                        {allDogs.map((dog) => (
-                                            < tr key={dog.id} >
-                                                <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                                    <div className="flex items-center">
-                                                        <div className="h-11 w-11 flex-shrink-0">
-                                                            <img className="h-11 w-11 rounded-full" src={dog.img} alt={dog.name} />
+                                        {allDogs
+                                            .sort((a, b) => a.breed.localeCompare(b.breed))
+                                            .map((dog) => (
+                                                < tr key={dog.id} >
+                                                    <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                                        <div className="flex items-center">
+                                                            <div className="h-11 w-11 flex-shrink-0">
+                                                                <img className="h-11 w-11 rounded-full" src={dog.img} alt={dog.name} />
+                                                            </div>
+                                                            <div className="ml-4">
+                                                                <div className="font-medium text-gray-900">{dog.name}</div>
+                                                            </div>
                                                         </div>
-                                                        <div className="ml-4">
-                                                            <div className="font-medium text-gray-900">{dog.name}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="whitespace-nowrap  px-3 py-4 text-sm text-gray-500">{dog.breed}</td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.age}</td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.zip_code}</td>
-                                                < td onClick={() => toggleFavorite(dog.id)}>
-                                                    <span className="inline-flex items-center cursor-pointer rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20"
-                                                    >
-                                                        {favoriteDogs.includes(dog.id) ? 'Remove' : 'Add +'}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                    </td>
+                                                    <td className="whitespace-nowrap  px-3 py-4 text-sm text-gray-500">{dog.breed}</td>
+                                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.age}</td>
+                                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.zip_code}</td>
+                                                    < td onClick={() => toggleFavorite(dog.id)}>
+                                                        <span className="inline-flex items-center cursor-pointer rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20"
+                                                        >
+                                                            {favoriteDogs.includes(dog.id) ? 'Remove' : 'Add +'}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -351,6 +278,8 @@ const DogInfo = (props) => {
                     </div >
                 )}
             </div >
+
+            {/* {searchResults.next || searchResults.next && */}
             <nav
                 className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
                 aria-label="Pagination"
@@ -362,26 +291,13 @@ const DogInfo = (props) => {
                     </p>
                 </div>
                 <div className="flex flex-1 justify-between sm:justify-end">
-                    {/* <button
-                        className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
-                        disabled={currentPage === 1}
-                        onClick={handlePreviousPage}
-                    >
-                        Previous
-                    </button>
-                    <button
-                        className="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
-                        disabled={endIndex >= allDogs.length}
-                        onClick={handleNextPage}
-                    >
-                        Next
-                    </button> */}
 
                     {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev)}>Prev</button>}
                     {searchResults.next && <button onClick={() => fetchDogs(searchResults.next.split('?')[1])}>Next</button>}
 
                 </div>
             </nav>
+            {/* } */}
         </>
     )
 }
