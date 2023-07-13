@@ -32,7 +32,7 @@ const DogInfo = () => {
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
     const [ageMin, setAgeMin] = useState('');
     const [ageMax, setAgeMax] = useState('');
-    const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('name:asc');
+    const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
 
