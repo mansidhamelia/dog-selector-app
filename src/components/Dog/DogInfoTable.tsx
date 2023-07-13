@@ -17,7 +17,7 @@ interface DogFilters {
     ageMax?: number;
     sort?: string;
 }
-const DogInfo = (props) => {
+const DogInfo = () => {
     const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -25,7 +25,6 @@ const DogInfo = (props) => {
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
     const [ageMin, setAgeMin] = useState('');
     const [ageMax, setAgeMax] = useState('');
-    const [location, setLocation] = useState('');
     const [sort, setSort] = useState<'asc' | 'desc'>('asc');
     const [selectedLocation, setSelectedLocation] = useState('');
 
@@ -44,6 +43,7 @@ const DogInfo = (props) => {
     }, [])
 
     const [query, setQuery] = useState('');
+    const [locationQuery, setLocationQuery] = useState('')
 
     const filteredBreed =
         query === ''
@@ -52,6 +52,12 @@ const DogInfo = (props) => {
                 return breed.toLowerCase().includes(query.toLowerCase())
             })
 
+    const filteredLocation =
+        locationQuery === ''
+            ? searchLocations
+            : searchLocations.filter((location) => {
+                return location.city.toLowerCase().includes(locationQuery.toLowerCase())
+            })
 
     const searchHandler = () => {
 
@@ -66,8 +72,8 @@ const DogInfo = (props) => {
         if (ageMax) {
             filters.ageMax = Number(ageMax);
         }
-        if (selectedLocation.length > 0) {
-            filters.zipCodes = [selectedLocation];
+        if (selectedLocation) {
+            filters.zipCodes = [selectedLocation.zip_code];
         }
         if (sort) {
             filters.sort = `breed:${sort}`;
@@ -94,7 +100,6 @@ const DogInfo = (props) => {
             if (response.ok) {
                 const matchData: Match = await response.json();
                 const matchId = matchData.match
-                console.log(allDogs, 'dogs');
                 if (matchId) {
                     const res = allDogs.find((dog) => dog.id === matchId);
                     setMatchedDog(res)
@@ -183,18 +188,19 @@ const DogInfo = (props) => {
                                     <div className="relative">
                                         <Combobox.Input
                                             className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-                                            onChange={(event) => setQuery(event.target.value)}
+                                            onChange={(event) => setLocationQuery(event.target.value)}
+                                            displayValue={(location) => location?.city}
                                             placeholder="Location(i.e. Los Angeles or 90210)"
                                         />
                                         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
                                             <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                                         </Combobox.Button>
-                                        {searchLocations.length > 0 && (
+                                        {filteredLocation.length > 0 && (
                                             <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                {searchLocations.map((location) => (
+                                                {filteredLocation.map((location) => (
                                                     <Combobox.Option
                                                         key={location.zip_code}
-                                                        value={location.zip_code}
+                                                        value={location}
                                                         className={({ active }) =>
                                                             classNames(
                                                                 'relative cursor-default select-none py-2 pl-3 pr-9',
@@ -223,6 +229,7 @@ const DogInfo = (props) => {
                                         )}
                                     </div>
                                 </Combobox>
+                                {/* <label htmlFor="">{selectedLocation.city}</label> */}
                             </div>
                         </form>
                     </div>
@@ -341,10 +348,6 @@ const DogInfo = (props) => {
                     </div >
                 )}
             </div >
-
-            {/* {searchResults.next || searchResults.next && */}
-
-            {/* } */}
         </>
     )
 }

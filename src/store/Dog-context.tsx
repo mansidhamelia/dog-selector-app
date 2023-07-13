@@ -24,9 +24,6 @@ interface SearchResult {
     next?: string;
     prev?: string;
 }
-interface Match {
-    match: string;
-}
 
 interface DogFilters {
     breeds?: string[];
