@@ -362,7 +362,6 @@ const DogInfo = () => {
                                         <tbody className="divide-y divide-gray-200">
                                             {allDogs
                                                 .sort((a, b) => a.breed.localeCompare(b.breed))
-                                                .sort((a, b) => a.name.localeCompare(b.name))
                                                 .map((dog) => (
                                                     < tr key={dog.id} >
                                                         <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
