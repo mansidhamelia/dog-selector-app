@@ -30,10 +30,7 @@ export const AuthContextProvider = (props) => {
                 },
                 credentials: 'include'
             });
-            console.log(response.status);
-
             if (response.ok) {
-                console.log('Logout successfully');
                 setIsLoggedIn(false);
                 navigate('/')
             } else {
@@ -57,11 +54,8 @@ export const AuthContextProvider = (props) => {
             });
 
             if (response.ok) {
-                console.log('Logged in successfully!');
                 setIsLoggedIn(true)
-
                 navigate('/doglist');
-
             } else {
                 console.error('Login failed!');
             }

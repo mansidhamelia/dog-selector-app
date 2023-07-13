@@ -17,6 +17,15 @@ interface DogFilters {
     ageMax?: number;
     sort?: string;
 }
+interface Dog {
+    id: string;
+    img: string;
+    name: string;
+    age: number;
+    zip_code: string;
+    breed: string;
+}
+
 const DogInfo = () => {
     const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
 
@@ -28,6 +37,7 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'asc' | 'desc'>('asc');
     const [selectedLocation, setSelectedLocation] = useState('');
 
+    const [dogs, setDogs] = useState<Dog[]>([]);
 
     // Calculate startIndex and endIndex based on currentPage
     const dogsPerPage = 25;
@@ -56,7 +66,8 @@ const DogInfo = () => {
         locationQuery === ''
             ? searchLocations
             : searchLocations.filter((location) => {
-                return location.city.toLowerCase().includes(locationQuery.toLowerCase())
+                return location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
+                    location.zip_code === locationQuery
             })
 
     const searchHandler = () => {
@@ -74,6 +85,8 @@ const DogInfo = () => {
         }
         if (selectedLocation) {
             filters.zipCodes = [selectedLocation.zip_code];
+        } else if (locationQuery) {
+            filters.zipCodes = [locationQuery];
         }
         if (sort) {
             filters.sort = `breed:${sort}`;
@@ -85,6 +98,7 @@ const DogInfo = () => {
         setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
         searchHandler()
     };
+
 
     // Fetch a match
     const handleMatch = async () => {
@@ -190,6 +204,7 @@ const DogInfo = () => {
                                             className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                             onChange={(event) => setLocationQuery(event.target.value)}
                                             displayValue={(location) => location?.city}
+                                            // value={locationQuery}
                                             placeholder="Location(i.e. Los Angeles or 90210)"
                                         />
                                         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
@@ -229,7 +244,6 @@ const DogInfo = () => {
                                         )}
                                     </div>
                                 </Combobox>
-                                {/* <label htmlFor="">{selectedLocation.city}</label> */}
                             </div>
                         </form>
                     </div>
@@ -340,7 +354,7 @@ const DogInfo = () => {
                                 </p>
                             </div>
                             <div className="flex flex-1 justify-between sm:justify-end">
-                                {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev)}>Prev</button>}
+                                {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev.split('?')[1])}>Prev</button>}
                                 {searchResults.next && <button onClick={() => fetchDogs(searchResults.next.split('?')[1])}>Next</button>}
 
                             </div>
