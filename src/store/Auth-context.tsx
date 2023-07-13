@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 interface AuthContextProps {
     isLoggedIn: boolean;
-    // isAuthenticated: boolean;
     onLogin: (name: string, email: string) => Promise<void>;
     onLogout: () => void;
 }
@@ -13,7 +12,6 @@ const baseURL = 'https://frontend-take-home-service.fetch.com';
 
 const AuthContext = createContext<AuthContextProps>({
     isLoggedIn: false,
-    // isAuthenticated: false,
     onLogin: async (name: string, email: string) => { },
     onLogout: () => { }
 });

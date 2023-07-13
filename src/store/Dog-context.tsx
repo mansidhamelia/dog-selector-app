@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext } from 'react';
-import AuthContext from './Auth-context';
 
 interface Location {
     zip_code: string
@@ -61,14 +60,11 @@ export const DogSearchContext = createContext<DogSearchContextProps>({
 const baseURL = 'https://frontend-take-home-service.fetch.com';
 
 export function DogSearchProvider({ children }) {
-    const { isLoggedIn } = useContext(AuthContext);
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [allDogs, setAllDogs] = useState<Dog[]>([]);
     const [breeds, setBreeds] = useState<string[]>([]);
     const [searchLocations, setSearchLocations] = useState<Location[]>([]);
-    // const [zipCodes, setZipCodes] = useState<string[]>([]);
     const [favoriteDogs, setFavoriteDogs] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
 
 
 
@@ -91,7 +87,6 @@ export function DogSearchProvider({ children }) {
     const fetchDogs = async (filters?: DogFilters) => {
         // Fetch dogs based on the provided filters
         try {
-            setLoading(true);
             let queryString = '';
             if (filters) {
                 const { breeds, zipCodes, ageMin, ageMax, sort, size } = filters;
@@ -140,9 +135,7 @@ export function DogSearchProvider({ children }) {
         } catch (error) {
             console.error('Failed to fetch dogs:', error);
         }
-        finally {
-            setLoading(false);
-        }
+
     };
 
     const toggleFavorite = (dogId: string) => {

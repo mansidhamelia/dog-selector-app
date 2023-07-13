@@ -18,14 +18,7 @@ interface DogFilters {
     sort?: string;
     size?: number;
 }
-interface Dog {
-    id: string;
-    img: string;
-    name: string;
-    age: number;
-    zip_code: string;
-    breed: string;
-}
+
 const size = [
     { id: 1, value: 10 },
     { id: 2, value: 25 },
@@ -35,23 +28,13 @@ const size = [
 const DogInfo = () => {
     const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
 
-    const [currentPage, setCurrentPage] = useState(1);
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
     const [ageMin, setAgeMin] = useState('');
     const [ageMax, setAgeMax] = useState('');
-    const [sort, setSort] = useState<'asc' | 'desc'>('asc');
+    const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('name:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
-
-    const [dogs, setDogs] = useState<Dog[]>([]);
-
-    // Calculate startIndex and endIndex based on currentPage
-    const dogsPerPage = 25;
-    const totalPages = Math.ceil(allDogs.length / dogsPerPage);
-    const startIndex = (currentPage - 1) * dogsPerPage;
-    const endIndex = startIndex + dogsPerPage;
-    const dogsToShow = allDogs.slice(startIndex, endIndex);
 
     useEffect(() => {
         fetchDogs()
@@ -81,37 +64,21 @@ const DogInfo = () => {
 
     const searchHandler = () => {
 
-        const filters: DogFilters = {};
-
-        if (selectedBreeds.length > 0) {
-            filters.breeds = [selectedBreeds];
-        }
-        if (ageMin) {
-            filters.ageMin = Number(ageMin);
-        }
-        if (ageMax) {
-            filters.ageMax = Number(ageMax);
-        }
-        if (selectedLocation) {
-            filters.zipCodes = [selectedLocation.zip_code];
-        } else if (locationQuery) {
-            filters.zipCodes = [locationQuery];
-        }
-        if (sort) {
-            filters.sort = `breed:${sort}`;
-        }
-        if (sizeValue) {
-            filters.size = Number(sizeValue);
-        }
+        const filters: DogFilters = {
+            breeds: selectedBreeds.length > 0 ? [selectedBreeds] : undefined,
+            ageMin: ageMin ? Number(ageMin) : undefined,
+            ageMax: ageMax ? Number(ageMax) : undefined,
+            zipCodes: selectedLocation ? [selectedLocation.zip_code] : locationQuery ? [locationQuery] : undefined,
+            sort: sort,
+            size: sizeValue ? Number(sizeValue) : undefined,
+        };
 
         fetchDogs(filters);
     };
 
-    const handleSort = () => {
-        setSort(prevSort => (prevSort === 'asc' ? 'desc' : 'asc'));
-        searchHandler()
+    const handleSort = (option: typeof sort) => {
+        setSort(option);
     };
-
 
     // Fetch a match
     const handleMatch = async () => {
@@ -141,7 +108,7 @@ const DogInfo = () => {
 
     useEffect(() => {
         searchHandler()
-    }, [sizeValue])
+    }, [sizeValue, sort])
 
     return (
         <>
@@ -221,7 +188,6 @@ const DogInfo = () => {
                                             className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                             onChange={(event) => setLocationQuery(event.target.value)}
                                             displayValue={(location) => location?.city}
-                                            // value={locationQuery}
                                             placeholder="Location(i.e. Los Angeles or 90210)"
                                         />
                                         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
@@ -277,6 +243,7 @@ const DogInfo = () => {
                     </button>
                 </div>
 
+                {/* Table description, Generate Match and Size */}
                 <div className="sm:flex sm:items-center">
                     <div className="sm:flex-auto text-left mt-4 flex justify-between">
                         <div>
@@ -342,7 +309,7 @@ const DogInfo = () => {
                     </div>
                 </div>
 
-
+                {/* Dogs detail table and matched dog details */}
                 {matchedDog ? (
                     <div>
                         <MatchedDogModal dog={matchedDog} />
@@ -358,24 +325,36 @@ const DogInfo = () => {
                                         <thead>
                                             <tr>
                                                 <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                    Name
-                                                    <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={handleSort} />
-                                                    </span>
-                                                </th>
-                                                <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                                    <a href="#" className="group inline-flex">
-                                                        Breed
+                                                    <a href="#" className="group inline-flex" onClick={() => handleSort(sort === 'name:asc' ? 'name:desc' : 'name:asc')}>
+                                                        Name
                                                         <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={handleSort} />
+                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
                                                         </span>
                                                     </a>
                                                 </th>
                                                 <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                                    Age
+                                                    <a href="#" className="group inline-flex" onClick={() => handleSort(sort === 'breed:asc' ? 'breed:desc' : 'breed:asc')}>
+                                                        Breed
+                                                        <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
+                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                                                        </span>
+                                                    </a>
+                                                </th>
+                                                <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
+                                                    <a href="#" className="group inline-flex" onClick={() => handleSort(sort === 'age:asc' ? 'age:desc' : 'age:asc')}>
+                                                        Age
+                                                        <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
+                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                                                        </span>
+                                                    </a>
                                                 </th>
                                                 <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
-                                                    Zip code
+                                                    <a href="#" className="group inline-flex" onClick={() => handleSort(sort === 'zipCodes:asc' ? 'zipCodes:desc' : 'zipCodes:asc')}>
+                                                        Zip Code
+                                                        <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
+                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                                                        </span>
+                                                    </a>
                                                 </th>
                                             </tr>
                                         </thead>
@@ -418,7 +397,7 @@ const DogInfo = () => {
                         >
                             <div className="hidden sm:block">
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{allDogs.length}</span> of{' '}
+                                    Showing <span className="font-medium">{1}</span> to <span className="font-medium">{allDogs.length}</span> of{' '}
                                     <span className="font-medium">{searchResults.total}</span> results
                                 </p>
                             </div>
