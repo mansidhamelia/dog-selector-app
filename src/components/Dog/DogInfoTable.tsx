@@ -16,6 +16,7 @@ interface DogFilters {
     ageMin?: number;
     ageMax?: number;
     sort?: string;
+    size?: number;
 }
 interface Dog {
     id: string;
@@ -25,6 +26,11 @@ interface Dog {
     zip_code: string;
     breed: string;
 }
+const size = [
+    { id: 1, value: 10 },
+    { id: 2, value: 25 },
+    { id: 3, value: 50 },
+]
 
 const DogInfo = () => {
     const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
@@ -35,6 +41,7 @@ const DogInfo = () => {
     const [ageMin, setAgeMin] = useState('');
     const [ageMax, setAgeMax] = useState('');
     const [sort, setSort] = useState<'asc' | 'desc'>('asc');
+    const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
 
     const [dogs, setDogs] = useState<Dog[]>([]);
@@ -66,8 +73,10 @@ const DogInfo = () => {
         locationQuery === ''
             ? searchLocations
             : searchLocations.filter((location) => {
-                return location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
-                    location.zip_code === locationQuery
+                return (
+                    location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
+                    location.zip_code === locationQuery ||
+                    location.state.includes(locationQuery))
             })
 
     const searchHandler = () => {
@@ -91,6 +100,10 @@ const DogInfo = () => {
         if (sort) {
             filters.sort = `breed:${sort}`;
         }
+        if (sizeValue) {
+            filters.size = Number(sizeValue);
+        }
+
         fetchDogs(filters);
     };
 
@@ -126,6 +139,10 @@ const DogInfo = () => {
         }
     };
 
+    useEffect(() => {
+        searchHandler()
+    }, [sizeValue])
+
     return (
         <>
             <div className="px-4 sm:px-6 lg:px-8 ">
@@ -146,10 +163,10 @@ const DogInfo = () => {
                                         </Combobox.Button>
                                         {filteredBreed.length > 0 && (
                                             <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                {filteredBreed.map((person) => (
+                                                {filteredBreed.map((breed) => (
                                                     <Combobox.Option
-                                                        key={person}
-                                                        value={person}
+                                                        key={breed}
+                                                        value={breed}
                                                         className={({ active }) =>
                                                             classNames(
                                                                 'relative cursor-default select-none py-2 pl-3 pr-9',
@@ -159,7 +176,7 @@ const DogInfo = () => {
                                                     >
                                                         {({ active, selected }) => (
                                                             <>
-                                                                <span className={classNames('block truncate', selected && 'font-semibold')}>{person}</span>
+                                                                <span className={classNames('block truncate', selected && 'font-semibold')}>{breed}</span>
                                                                 {selected && (
                                                                     <span
                                                                         className={classNames(
@@ -225,7 +242,7 @@ const DogInfo = () => {
                                                     >
                                                         {({ active, selected }) => (
                                                             <>
-                                                                <span className={classNames('block truncate', selected && 'font-semibold')}>{location.city}</span>
+                                                                <span className={classNames('block truncate', selected && 'font-semibold')}>{location.city}, {location.state}</span>
                                                                 {selected && (
                                                                     <span
                                                                         className={classNames(
@@ -268,12 +285,60 @@ const DogInfo = () => {
                                 A list of all the dogs in your account including their image, name, age, Zip code and breed.
                             </p>
                         </div>
+                    </div>
+                    <div className="mt-4 flex gap-x-2">
                         <button
                             type="button"
                             className=" items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                             onClick={handleMatch} disabled={favoriteDogs.length === 0}                    >
                             Generate Match
                         </button>
+                        <Combobox as="div" value={sizeValue}>
+                            <div className="relative">
+                                <Combobox.Input
+                                    className=" w-20 rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
+                                    placeholder="Size"
+                                />
+                                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                </Combobox.Button>
+                                {size.length > 0 && (
+                                    <Combobox.Options className="absolute w-full z-10 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                        {size.map((size) => (
+                                            <Combobox.Option
+                                                key={size.id}
+                                                value={size.value}
+                                                className={({ active }) =>
+                                                    classNames(
+                                                        'relative cursor-default select-none py-2 pl-3 pr-9',
+                                                        active ? 'bg-gray-600 text-white' : 'text-gray-900'
+                                                    )
+                                                }
+                                                onClick={() => {
+                                                    setSizeValue(size.value);
+                                                }}
+                                            >
+                                                {({ active, selected }) => (
+                                                    <>
+                                                        <span className={classNames('block truncate', selected && 'font-semibold')}>{size.value}</span>
+                                                        {selected && (
+                                                            <span
+                                                                className={classNames(
+                                                                    'absolute inset-y-0 right-0 flex items-center pr-4',
+                                                                    active ? 'text-white' : 'text-gray-600'
+                                                                )}
+                                                            >
+                                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </Combobox.Option>
+                                        ))}
+                                    </Combobox.Options>
+                                )}
+                            </div>
+                        </Combobox>
                     </div>
                 </div>
 
@@ -294,6 +359,9 @@ const DogInfo = () => {
                                             <tr>
                                                 <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
                                                     Name
+                                                    <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
+                                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" onClick={handleSort} />
+                                                    </span>
                                                 </th>
                                                 <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
                                                     <a href="#" className="group inline-flex">
@@ -315,6 +383,7 @@ const DogInfo = () => {
                                         <tbody className="divide-y divide-gray-200">
                                             {allDogs
                                                 .sort((a, b) => a.breed.localeCompare(b.breed))
+                                                .sort((a, b) => a.name.localeCompare(b.name))
                                                 .map((dog) => (
                                                     < tr key={dog.id} >
                                                         <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">

@@ -31,6 +31,7 @@ interface DogFilters {
     ageMin?: number;
     ageMax?: number;
     sort?: string,
+    size?: number;
 }
 
 interface DogSearchContextProps {
@@ -93,13 +94,15 @@ export function DogSearchProvider({ children }) {
             setLoading(true);
             let queryString = '';
             if (filters) {
-                const { breeds, zipCodes, ageMin, ageMax, sort } = filters;
+                const { breeds, zipCodes, ageMin, ageMax, sort, size } = filters;
                 const params = new URLSearchParams();
                 if (breeds) params.append('breeds', breeds.join(','));
                 if (zipCodes) params.append('zipCodes', zipCodes.join(','));
                 if (ageMin) params.append('ageMin', ageMin.toString());
                 if (ageMax) params.append('ageMax', ageMax.toString());
-                if (sort) params.append('sort', sort.toString())
+                if (sort) params.append('sort', sort.toString());
+                if (size) params.append('size', size.toString());
+
                 queryString = params.toString();
             }
 
