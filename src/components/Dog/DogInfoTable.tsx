@@ -10,6 +10,7 @@ function classNames(...classes) {
 interface Match {
     match: string;
 }
+
 interface DogFilters {
     breeds?: string[];
     zipCodes?: string[];
@@ -17,6 +18,7 @@ interface DogFilters {
     ageMax?: number;
     sort?: string;
     size?: number;
+    geoBoundingBox?: GeoBoundingBox;
 }
 
 const size = [
@@ -26,7 +28,7 @@ const size = [
 ]
 
 const DogInfo = () => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNext } = useContext(DogSearchContext);
 
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
@@ -35,6 +37,10 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
+    const [latitude, setLatitude] = useState('');
+    const [longitude, setLongitude] = useState('');
+    const [boundingBox, setBoundingBox] = useState<GeoBoundingBox | undefined>(undefined);
+
 
     useEffect(() => {
         fetchDogs()
@@ -59,7 +65,12 @@ const DogInfo = () => {
                 return (
                     location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
                     location.zip_code === locationQuery ||
-                    location.state.includes(locationQuery))
+                    location.state.includes(locationQuery) ||
+                    location.latitude === locationQuery ||
+                    location.longitude === locationQuery
+
+
+                )
             })
 
     const searchHandler = () => {
@@ -109,6 +120,7 @@ const DogInfo = () => {
     useEffect(() => {
         searchHandler()
     }, [sizeValue, sort])
+
 
     return (
         <>
@@ -184,6 +196,8 @@ const DogInfo = () => {
                             <div className="relative w-2/3">
                                 <Combobox as="div" value={selectedLocation} onChange={setSelectedLocation} >
                                     <div className="relative">
+
+                                        {/* need to chack th econdition of lat, lon to send data in spi */}
                                         <Combobox.Input
                                             className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                             onChange={(event) => setLocationQuery(event.target.value)}
@@ -227,6 +241,7 @@ const DogInfo = () => {
                                         )}
                                     </div>
                                 </Combobox>
+                                {/* <GeoBoundingBoxInput /> */}
                             </div>
                         </form>
                     </div>
@@ -400,9 +415,9 @@ const DogInfo = () => {
                                     <span className="font-medium">{searchResults.total}</span> results
                                 </p>
                             </div>
-                            <div className="flex flex-1 justify-between sm:justify-end">
-                                {searchResults.prev && <button onClick={() => fetchDogs(searchResults.prev.split('?')[1])}>Prev</button>}
-                                {searchResults.next && <button onClick={() => fetchDogs(searchResults.next.split('?')[1])}>Next</button>}
+                            <div className="flex flex-1 justify-between sm:justify-end gap-3">
+                                {searchResults.prev && <button onClick={() => fetchNext(searchResults.prev)}>Prev</button>}
+                                {searchResults.next && <button onClick={() => fetchNext(searchResults.next)}>Next</button>}
 
                             </div>
                         </nav>

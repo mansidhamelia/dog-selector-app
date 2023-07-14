@@ -2,8 +2,8 @@ import React, { createContext, useState, useContext } from 'react';
 
 interface Location {
     zip_code: string
-    latitude: number
-    longitude: number
+    latitude: string
+    longitude: string
     city: string
     state: string
     county: string
@@ -31,7 +31,34 @@ interface DogFilters {
     ageMax?: number;
     sort?: string,
     size?: number;
+    geoBoundingBox?: GeoBoundingBox;
+    from?: string;
 }
+interface GeoBoundingBox {
+    lat?: number;
+    lon?: number;
+    top?: number;
+    left?: number;
+    bottom?: number;
+    right?: number;
+    bottom_left?: {
+        lat?: number;
+        lon?: number;
+    };
+    top_right?: {
+        lat?: number;
+        lon?: number;
+    };
+    bottom_right?: {
+        lat?: number;
+        lon?: number;
+    };
+    top_left?: {
+        lat?: number;
+        lon?: number;
+    };
+}
+
 
 interface DogSearchContextProps {
     breeds: string[],
@@ -43,6 +70,8 @@ interface DogSearchContextProps {
     fetchBreeds: () => void;
     toggleFavorite: (dogId: string) => void;
     fetchLocations: () => void;
+    fetchNext: (link: string) => void;
+
 }
 
 export const DogSearchContext = createContext<DogSearchContextProps>({
@@ -54,7 +83,9 @@ export const DogSearchContext = createContext<DogSearchContextProps>({
     fetchDogs: () => { },
     fetchBreeds: () => { },
     toggleFavorite: () => { },
-    fetchLocations: () => { }
+    fetchLocations: () => { },
+    fetchNext: (link: string) => { }
+
 });
 
 const baseURL = 'https://frontend-take-home-service.fetch.com';
@@ -65,8 +96,6 @@ export function DogSearchProvider({ children }) {
     const [breeds, setBreeds] = useState<string[]>([]);
     const [searchLocations, setSearchLocations] = useState<Location[]>([]);
     const [favoriteDogs, setFavoriteDogs] = useState<string[]>([]);
-
-
 
     // Fetch dog breeds
     const fetchBreeds = async () => {
@@ -97,7 +126,6 @@ export function DogSearchProvider({ children }) {
                 if (ageMax) params.append('ageMax', ageMax.toString());
                 if (sort) params.append('sort', sort.toString());
                 if (size) params.append('size', size.toString());
-
                 queryString = params.toString();
             }
 
@@ -113,22 +141,7 @@ export function DogSearchProvider({ children }) {
                 setSearchResults(data);
 
                 // Fetch dog details
-                const dogResponse = await fetch(`${baseURL}/dogs`, {
-                    method: 'POST',
-                    body: JSON.stringify(dogIds),
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                });
-
-                if (dogResponse.ok) {
-                    const dogData: Dog[] = await dogResponse.json();
-                    const sortedData = dogData.sort();
-                    setAllDogs(sortedData);
-                } else {
-                    console.error('Failed to fetch dog details');
-                }
+                fetchDogDetails(dogIds)
             } else {
                 console.error('Failed to fetch dogs');
             }
@@ -136,6 +149,47 @@ export function DogSearchProvider({ children }) {
             console.error('Failed to fetch dogs:', error);
         }
 
+    };
+
+    // fetch dogs details as per ids
+    const fetchDogDetails = async (dogIds: any) => {
+        try {
+            const dogResponse = await fetch(`${baseURL}/dogs`, {
+                method: 'POST',
+                body: JSON.stringify(dogIds),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+
+            if (dogResponse.ok) {
+                const dogData: Dog[] = await dogResponse.json();
+                const sortedData = dogData.sort();
+                setAllDogs(sortedData);
+            } else {
+                console.error('Failed to fetch dog details');
+            }
+        } catch (error) {
+            console.error('Failed to fetch dogs:', error);
+        }
+    }
+
+    // fetch next and prev data
+    const fetchNext = async (link: any) => {
+        try {
+            const response = await fetch(`${baseURL}${link}`, {
+                credentials: 'include',
+            });
+            if (response.ok) {
+                const data = await response.json();
+                const dogIds = data.resultIds
+                fetchDogDetails(dogIds)
+                setSearchResults(data)
+            }
+        } catch (error) {
+            console.error('Failed to fetch dog breeds:', error);
+        }
     };
 
     const toggleFavorite = (dogId: string) => {
@@ -173,7 +227,7 @@ export function DogSearchProvider({ children }) {
     };
 
     return (
-        <DogSearchContext.Provider value={{ breeds, searchResults, favoriteDogs, fetchBreeds, fetchDogs, fetchLocations, searchLocations, toggleFavorite, allDogs }}>
+        <DogSearchContext.Provider value={{ breeds, searchResults, favoriteDogs, fetchBreeds, fetchDogs, fetchLocations, searchLocations, toggleFavorite, allDogs, fetchNext }}>
             {children}
         </DogSearchContext.Provider>
     );
