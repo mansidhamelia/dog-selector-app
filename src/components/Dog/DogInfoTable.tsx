@@ -28,7 +28,7 @@ const size = [
 ]
 
 const DogInfo = () => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNext } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNext, endIndex } = useContext(DogSearchContext);
 
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
@@ -37,10 +37,6 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
-    const [latitude, setLatitude] = useState('');
-    const [longitude, setLongitude] = useState('');
-    const [boundingBox, setBoundingBox] = useState<GeoBoundingBox | undefined>(undefined);
-
 
     useEffect(() => {
         fetchDogs()
@@ -121,7 +117,6 @@ const DogInfo = () => {
         searchHandler()
     }, [sizeValue, sort])
 
-
     return (
         <>
             <div className="px-4 sm:px-6 lg:px-8 ">
@@ -193,7 +188,9 @@ const DogInfo = () => {
                                     type="search" value={ageMax} onChange={e => setAgeMax(e.target.value)}
                                 />
                             </div>
+                            {/* location search input */}
                             <div className="relative w-2/3">
+
                                 <Combobox as="div" value={selectedLocation} onChange={setSelectedLocation} >
                                     <div className="relative">
 
@@ -241,7 +238,6 @@ const DogInfo = () => {
                                         )}
                                     </div>
                                 </Combobox>
-                                {/* <GeoBoundingBoxInput /> */}
                             </div>
                         </form>
                     </div>
@@ -411,7 +407,7 @@ const DogInfo = () => {
                         >
                             <div className="hidden sm:block">
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{1}</span> to <span className="font-medium">{allDogs.length}</span> of{' '}
+                                    Showing <span className="font-medium">{endIndex - sizeValue}</span> to <span className="font-medium">{endIndex}</span> of{' '}
                                     <span className="font-medium">{searchResults.total}</span> results
                                 </p>
                             </div>

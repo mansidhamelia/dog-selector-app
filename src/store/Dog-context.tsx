@@ -71,7 +71,7 @@ interface DogSearchContextProps {
     toggleFavorite: (dogId: string) => void;
     fetchLocations: () => void;
     fetchNext: (link: string) => void;
-
+    endIndex: number;
 }
 
 export const DogSearchContext = createContext<DogSearchContextProps>({
@@ -84,8 +84,8 @@ export const DogSearchContext = createContext<DogSearchContextProps>({
     fetchBreeds: () => { },
     toggleFavorite: () => { },
     fetchLocations: () => { },
-    fetchNext: (link: string) => { }
-
+    fetchNext: (link: string) => { },
+    endIndex: 25
 });
 
 const baseURL = 'https://frontend-take-home-service.fetch.com';
@@ -96,6 +96,7 @@ export function DogSearchProvider({ children }) {
     const [breeds, setBreeds] = useState<string[]>([]);
     const [searchLocations, setSearchLocations] = useState<Location[]>([]);
     const [favoriteDogs, setFavoriteDogs] = useState<string[]>([]);
+    const [endIndex, setEndIndex] = useState(25)
 
     // Fetch dog breeds
     const fetchBreeds = async () => {
@@ -139,6 +140,10 @@ export function DogSearchProvider({ children }) {
                 const data: SearchResult = await response.json();
                 const dogIds = data.resultIds;
                 setSearchResults(data);
+                // code for pagination
+                const nextPage = data.next;
+                const nextFromValue = nextPage ? nextPage.match(/from=(\d+)/)[1] : null;
+                setEndIndex(nextFromValue)
 
                 // Fetch dog details
                 fetchDogDetails(dogIds)
@@ -186,6 +191,11 @@ export function DogSearchProvider({ children }) {
                 const dogIds = data.resultIds
                 fetchDogDetails(dogIds)
                 setSearchResults(data)
+
+                const nextPage = data.next;
+                const nextFromValue = nextPage ? nextPage.match(/from=(\d+)/)[1] : null;
+
+                setEndIndex(nextFromValue)
             }
         } catch (error) {
             console.error('Failed to fetch dog breeds:', error);
@@ -227,7 +237,7 @@ export function DogSearchProvider({ children }) {
     };
 
     return (
-        <DogSearchContext.Provider value={{ breeds, searchResults, favoriteDogs, fetchBreeds, fetchDogs, fetchLocations, searchLocations, toggleFavorite, allDogs, fetchNext }}>
+        <DogSearchContext.Provider value={{ breeds, searchResults, favoriteDogs, fetchBreeds, fetchDogs, fetchLocations, searchLocations, toggleFavorite, allDogs, fetchNext, endIndex }}>
             {children}
         </DogSearchContext.Provider>
     );
