@@ -18,7 +18,6 @@ interface DogFilters {
     ageMax?: number;
     sort?: string;
     size?: number;
-    geoBoundingBox?: GeoBoundingBox;
 }
 
 const size = [
@@ -28,7 +27,7 @@ const size = [
 ]
 
 const DogInfo = () => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNext, endIndex } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNext, endIndex, fetchZipCode } = useContext(DogSearchContext);
 
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
@@ -37,10 +36,8 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
-    const [topLatValue, setTopLatValue] = useState<Number>()
-    const [topLonValue, setTopLonValue] = useState<Number>()
-    const [bottomLatValue, setBottomLatValue] = useState<Number>()
-    const [bottomLonValue, setBottomLonValue] = useState<Number>()
+    const [latitude, setLatitude] = useState<number | undefined>(undefined);
+    const [longitude, setLongitude] = useState<number | undefined>(undefined);
 
 
     useEffect(() => {
@@ -67,10 +64,9 @@ const DogInfo = () => {
                 return (
                     location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
                     location.zip_code === locationQuery ||
-                    location.state.includes(locationQuery) ||
-                    location.latitude === locationQuery ||
-                    location.longitude === locationQuery
-
+                    location.state.toLowerCase().includes(locationQuery.toLowerCase())
+                    // location.latitude === locationQuery ||
+                    // location.longitude === locationQuery
                 )
             })
 
@@ -83,16 +79,6 @@ const DogInfo = () => {
             zipCodes: selectedLocation ? [selectedLocation.zip_code] : locationQuery ? [locationQuery] : undefined,
             sort: sort,
             size: sizeValue ? Number(sizeValue) : undefined,
-            geoBoundingBox: {
-                top: {
-                    lat: topLatValue,
-                    lon: topLonValue,
-                },
-                bottom: {
-                    lat: bottomLatValue,
-                    lon: bottomLonValue,
-                },
-            },
         };
 
         fetchDogs(filters);
@@ -205,16 +191,13 @@ const DogInfo = () => {
                             </div>
                             {/* location search input */}
                             <div className="relative w-2/3">
-
                                 <Combobox as="div" value={selectedLocation} onChange={setSelectedLocation} >
                                     <div className="relative">
-
-                                        {/* need to chack th econdition of lat, lon to send data in spi */}
                                         <Combobox.Input
                                             className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                             onChange={(event) => setLocationQuery(event.target.value)}
                                             displayValue={(location) => location?.city}
-                                            placeholder="Location(i.e. Los Angeles or 90210)"
+                                            placeholder="Location(i.e. Los Angeles, CA or 90210)"
                                         />
                                         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
                                             <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -269,24 +252,28 @@ const DogInfo = () => {
                     </button>
                 </div>
                 <div>
-                    <label>Top Latitude: </label>
-                    <input type="number" value={topLatValue} onChange={(e) => setTopLatValue(Number(e.target.value))} />
+                    <label>Latitude: </label>
+                    <input
+                        type="text"
+                        value={latitude !== undefined ? latitude.toString() : ''}
+                        onChange={(e) => setLatitude(parseFloat(e.target.value))}
+                    />
                 </div>
-
                 <div>
-                    <label>Top Longitude: </label>
-                    <input type="number" value={topLonValue} onChange={(e) => setTopLonValue(Number(e.target.value))} />
+                    <label>Longitude: </label>
+                    <input
+                        type="text"
+                        value={longitude !== undefined ? longitude.toString() : ''}
+                        onChange={(e) => setLongitude(parseFloat(e.target.value))}
+                    />
                 </div>
-
-                <div>
-                    <label>Bottom Latitude: </label>
-                    <input type="number" value={bottomLatValue} onChange={(e) => setBottomLatValue(Number(e.target.value))} />
-                </div>
-
-                <div>
-                    <label>Bottom Longitude: </label>
-                    <input type="number" value={bottomLonValue} onChange={(e) => setBottomLonValue(Number(e.target.value))} />
-                </div>
+                <button
+                    type="button"
+                    className="relative inline-flex items-center gap-x-1.5 rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    onClick={() => fetchZipCode(parseFloat(latitude), parseFloat(longitude))}
+                >
+                    Search
+                </button>
 
                 {/* Table description, Generate Match and Size */}
                 <div className="sm:flex sm:items-center">
