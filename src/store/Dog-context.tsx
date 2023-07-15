@@ -31,33 +31,35 @@ interface DogFilters {
     ageMax?: number;
     sort?: string,
     size?: number;
-    geoBoundingBox?: GeoBoundingBox;
     from?: string;
+    geoBoundingBox?: {
+        top?: {
+            lat: number;
+            lon: number;
+        };
+        bottom?: {
+            lat: number;
+            lon: number;
+        };
+        bottom_left?: {
+            lat: number;
+            lon: number;
+        };
+        top_right?: {
+            lat: number;
+            lon: number;
+        };
+        bottom_right?: {
+            lat: number;
+            lon: number;
+        };
+        top_left?: {
+            lat: number;
+            lon: number;
+        };
+    };
 }
-interface GeoBoundingBox {
-    lat?: number;
-    lon?: number;
-    top?: number;
-    left?: number;
-    bottom?: number;
-    right?: number;
-    bottom_left?: {
-        lat?: number;
-        lon?: number;
-    };
-    top_right?: {
-        lat?: number;
-        lon?: number;
-    };
-    bottom_right?: {
-        lat?: number;
-        lon?: number;
-    };
-    top_left?: {
-        lat?: number;
-        lon?: number;
-    };
-}
+
 
 
 interface DogSearchContextProps {
@@ -113,13 +115,17 @@ export function DogSearchProvider({ children }) {
         }
     };
 
-    // Fetch search results
+    // Fetch dogs search results
     const fetchDogs = async (filters?: DogFilters) => {
         // Fetch dogs based on the provided filters
         try {
+
+            // Find the zip code based on latitude and longitude
+            // const zipCode = await fetchZipCode(latitude, longitude);
+
             let queryString = '';
             if (filters) {
-                const { breeds, zipCodes, ageMin, ageMax, sort, size } = filters;
+                const { breeds, zipCodes, ageMin, ageMax, sort, size, geoBoundingBox } = filters;
                 const params = new URLSearchParams();
                 if (breeds) params.append('breeds', breeds.join(','));
                 if (zipCodes) params.append('zipCodes', zipCodes.join(','));
@@ -127,6 +133,9 @@ export function DogSearchProvider({ children }) {
                 if (ageMax) params.append('ageMax', ageMax.toString());
                 if (sort) params.append('sort', sort.toString());
                 if (size) params.append('size', size.toString());
+                if (geoBoundingBox) {
+                    params.append('geoBoundingBox', JSON.stringify(geoBoundingBox));
+                }
                 queryString = params.toString();
             }
 
@@ -140,6 +149,8 @@ export function DogSearchProvider({ children }) {
                 const data: SearchResult = await response.json();
                 const dogIds = data.resultIds;
                 setSearchResults(data);
+                console.log(data, 'da');
+
                 // code for pagination
                 const nextPage = data.next;
                 const nextFromValue = nextPage ? nextPage.match(/from=(\d+)/)[1] : null;
@@ -228,11 +239,48 @@ export function DogSearchProvider({ children }) {
             if (response.ok) {
                 const searchResultsData: { results: Location[]; total: number } = await response.json();
                 setSearchLocations(searchResultsData.results);
+                console.log(searchResults, 'locationsearch result');
+
             } else {
                 console.error('Failed to search locations');
             }
         } catch (error) {
             console.error('Failed to search locations:', error);
+        }
+    };
+
+    // Fetch zip code based on latitude and longitude
+    const fetchZipCode = async (latitude: number, longitude: number) => {
+        try {
+            const response = await fetch(`${baseURL}/locations/search`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    geoBoundingBox: {
+                        top: { lat: latitude, lon: longitude },
+                        bottom: { lat: latitude, lon: longitude },
+                    },
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                const data: { results: Location[]; total: number } = await response.json();
+                if (data.total > 0) {
+                    const zipCode = data.results[0].zip_code;
+                    // Use the zip code for further processing
+                    console.log(zipCode, 'zipcode');
+
+                } else {
+                    console.error('No location found for the given latitude and longitude');
+                }
+            } else {
+                console.error('Failed to fetch zip code');
+            }
+        } catch (error) {
+            console.error('Failed to fetch zip code:', error);
         }
     };
 

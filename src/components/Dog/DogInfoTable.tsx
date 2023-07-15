@@ -37,11 +37,17 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
+    const [topLatValue, setTopLatValue] = useState<Number>()
+    const [topLonValue, setTopLonValue] = useState<Number>()
+    const [bottomLatValue, setBottomLatValue] = useState<Number>()
+    const [bottomLonValue, setBottomLonValue] = useState<Number>()
+
 
     useEffect(() => {
         fetchDogs()
         fetchBreeds();
-        fetchLocations()
+        fetchLocations();
+
     }, [])
 
     const [query, setQuery] = useState('');
@@ -65,7 +71,6 @@ const DogInfo = () => {
                     location.latitude === locationQuery ||
                     location.longitude === locationQuery
 
-
                 )
             })
 
@@ -78,6 +83,16 @@ const DogInfo = () => {
             zipCodes: selectedLocation ? [selectedLocation.zip_code] : locationQuery ? [locationQuery] : undefined,
             sort: sort,
             size: sizeValue ? Number(sizeValue) : undefined,
+            geoBoundingBox: {
+                top: {
+                    lat: topLatValue,
+                    lon: topLonValue,
+                },
+                bottom: {
+                    lat: bottomLatValue,
+                    lon: bottomLonValue,
+                },
+            },
         };
 
         fetchDogs(filters);
@@ -253,6 +268,25 @@ const DogInfo = () => {
                         Search
                     </button>
                 </div>
+                <div>
+                    <label>Top Latitude: </label>
+                    <input type="number" value={topLatValue} onChange={(e) => setTopLatValue(Number(e.target.value))} />
+                </div>
+
+                <div>
+                    <label>Top Longitude: </label>
+                    <input type="number" value={topLonValue} onChange={(e) => setTopLonValue(Number(e.target.value))} />
+                </div>
+
+                <div>
+                    <label>Bottom Latitude: </label>
+                    <input type="number" value={bottomLatValue} onChange={(e) => setBottomLatValue(Number(e.target.value))} />
+                </div>
+
+                <div>
+                    <label>Bottom Longitude: </label>
+                    <input type="number" value={bottomLonValue} onChange={(e) => setBottomLonValue(Number(e.target.value))} />
+                </div>
 
                 {/* Table description, Generate Match and Size */}
                 <div className="sm:flex sm:items-center">
@@ -372,7 +406,7 @@ const DogInfo = () => {
 
                                         <tbody className="divide-y divide-gray-200">
                                             {allDogs
-                                                .sort((a, b) => a.breed.localeCompare(b.breed))
+                                                // .sort((a, b) => a.breed.localeCompare(b.breed))
                                                 .map((dog) => (
                                                     < tr key={dog.id} >
                                                         <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
