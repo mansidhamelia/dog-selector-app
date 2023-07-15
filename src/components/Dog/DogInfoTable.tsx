@@ -407,7 +407,7 @@ const DogInfo = () => {
                         >
                             <div className="hidden sm:block">
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{endIndex - sizeValue}</span> to <span className="font-medium">{endIndex}</span> of{' '}
+                                    Showing <span className="font-medium">{endIndex - sizeValue + 1}</span> to <span className="font-medium">{endIndex}</span> of{' '}
                                     <span className="font-medium">{searchResults.total}</span> results
                                 </p>
                             </div>
