@@ -36,16 +36,8 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
-    const [latitude, setLatitude] = useState<number | undefined>(undefined);
-    const [longitude, setLongitude] = useState<number | undefined>(undefined);
-
-
-    useEffect(() => {
-        fetchDogs()
-        fetchBreeds();
-        fetchLocations();
-
-    }, [])
+    const [latitude, setLatitude] = useState<number | undefined>();
+    const [longitude, setLongitude] = useState<number | undefined>();
 
     const [query, setQuery] = useState('');
     const [locationQuery, setLocationQuery] = useState('')
@@ -65,13 +57,10 @@ const DogInfo = () => {
                     location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
                     location.zip_code === locationQuery ||
                     location.state.toLowerCase().includes(locationQuery.toLowerCase())
-                    // location.latitude === locationQuery ||
-                    // location.longitude === locationQuery
                 )
             })
 
     const searchHandler = () => {
-
         const filters: DogFilters = {
             breeds: selectedBreeds.length > 0 ? [selectedBreeds] : undefined,
             ageMin: ageMin ? Number(ageMin) : undefined,
@@ -82,7 +71,37 @@ const DogInfo = () => {
         };
 
         fetchDogs(filters);
+        if (latitude != undefined) {
+            fetchZipCode(latitude, longitude)
+        }
     };
+
+    const handleLatitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setLatitude(value === "" ? undefined : parseFloat(value));
+    };
+
+    const handleLongitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setLongitude(value === "" ? undefined : parseFloat(value));
+    };
+
+    const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+            searchHandler()
+            fetchZipCode(latitude, longitude)
+        }
+    };
+
+    useEffect(() => {
+        fetchDogs()
+        fetchBreeds();
+        fetchLocations();
+    }, [])
+
+    useEffect(() => {
+        searchHandler()
+    }, [sizeValue, sort])
 
     const handleSort = (option: typeof sort) => {
         setSort(option);
@@ -114,128 +133,158 @@ const DogInfo = () => {
         }
     };
 
-    useEffect(() => {
-        searchHandler()
-    }, [sizeValue, sort])
 
     return (
         <>
             <div className="px-4 sm:px-6 lg:px-8 ">
                 {/* search bar */}
-                <div className="sticky top-0  flex h-16 shrink-0 items-center gap-x-6 border-b border-black/10 shadow-sm">
+                <div className="sticky top-0 py-2 flex shrink-0 items-center gap-x-6 border-b border-black/10 shadow-sm">
                     <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 ">
-                        <form className="flex flex-1 justify-evenly items-center gap-x-1" action="#" method="GET">
-                            <div className="relative w-2/3">
-                                <Combobox as="div" value={selectedBreeds} onChange={setSelectedBreeds}>
-                                    <div className="relative">
-                                        <Combobox.Input
-                                            className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-                                            onChange={(event) => setQuery(event.target.value)}
-                                            placeholder="Breed"
-                                        />
-                                        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                        </Combobox.Button>
-                                        {filteredBreed.length > 0 && (
-                                            <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                {filteredBreed.map((breed) => (
-                                                    <Combobox.Option
-                                                        key={breed}
-                                                        value={breed}
-                                                        className={({ active }) =>
-                                                            classNames(
-                                                                'relative cursor-default select-none py-2 pl-3 pr-9',
-                                                                active ? 'bg-gray-600 text-white' : 'text-gray-900'
-                                                            )
-                                                        }
-                                                    >
-                                                        {({ active, selected }) => (
-                                                            <>
-                                                                <span className={classNames('block truncate', selected && 'font-semibold')}>{breed}</span>
-                                                                {selected && (
-                                                                    <span
-                                                                        className={classNames(
-                                                                            'absolute inset-y-0 right-0 flex items-center pr-4',
-                                                                            active ? 'text-white' : 'text-gray-600'
-                                                                        )}
-                                                                    >
-                                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                                                    </span>
-                                                                )}
-                                                            </>
-                                                        )}
-                                                    </Combobox.Option>
-                                                ))}
-                                            </Combobox.Options>
-                                        )}
-                                    </div>
-                                </Combobox>
+                        <form className="flex flex-1 flex-col items-center gap-y-2 " action="#" method="GET">
+                            {/* Location and Breed search input */}
+                            <div className="flex justify-between w-full  gap-x-2">
+                                <div className="relative w-1/2">
+                                    <Combobox as="div" value={selectedBreeds} onChange={setSelectedBreeds}>
+                                        <div className="relative">
+                                            <Combobox.Input
+                                                className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
+                                                onChange={(event) => setQuery(event.target.value)}
+                                                placeholder="Breed"
+                                                onKeyPress={keyPressHandler}
+                                            />
+                                            <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                                                <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                            </Combobox.Button>
+                                            {filteredBreed.length > 0 && (
+                                                <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                    {filteredBreed.map((breed) => (
+                                                        <Combobox.Option
+                                                            key={breed}
+                                                            value={breed}
+                                                            className={({ active }) =>
+                                                                classNames(
+                                                                    'relative cursor-default select-none py-2 pl-3 pr-9',
+                                                                    active ? 'bg-gray-600 text-white' : 'text-gray-900'
+                                                                )
+                                                            }
+                                                        >
+                                                            {({ active, selected }) => (
+                                                                <>
+                                                                    <span className={classNames('block truncate', selected && 'font-semibold')}>{breed}</span>
+                                                                    {selected && (
+                                                                        <span
+                                                                            className={classNames(
+                                                                                'absolute inset-y-0 right-0 flex items-center pr-4',
+                                                                                active ? 'text-white' : 'text-gray-600'
+                                                                            )}
+                                                                        >
+                                                                            <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                        </span>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </Combobox.Option>
+                                                    ))}
+                                                </Combobox.Options>
+                                            )}
+                                        </div>
+                                    </Combobox>
+                                </div>
+                                <div className="relative w-1/2">
+                                    <Combobox as="div" value={selectedLocation} onChange={setSelectedLocation} >
+                                        <div className="relative">
+                                            <Combobox.Input
+                                                className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
+                                                onChange={(event) => setLocationQuery(event.target.value)}
+                                                displayValue={(location) => location?.city}
+                                                placeholder="Location(i.e. Los Angeles, CA or 90210)"
+                                                onKeyPress={keyPressHandler}
+                                            />
+                                            <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                                                <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                            </Combobox.Button>
+                                            {filteredLocation.length > 0 && (
+                                                <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                    {filteredLocation.map((location) => (
+                                                        <Combobox.Option
+                                                            key={location.zip_code}
+                                                            value={location}
+                                                            className={({ active }) =>
+                                                                classNames(
+                                                                    'relative cursor-default select-none py-2 pl-3 pr-9',
+                                                                    active ? 'bg-gray-600 text-white' : 'text-gray-900'
+                                                                )
+                                                            }
+                                                        >
+                                                            {({ active, selected }) => (
+                                                                <>
+                                                                    <span className={classNames('block truncate', selected && 'font-semibold')}>{location.city}, {location.state}</span>
+                                                                    {selected && (
+                                                                        <span
+                                                                            className={classNames(
+                                                                                'absolute inset-y-0 right-0 flex items-center pr-4',
+                                                                                active ? 'text-white' : 'text-gray-600'
+                                                                            )}
+                                                                        >
+                                                                            <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                        </span>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </Combobox.Option>
+                                                    ))}
+                                                </Combobox.Options>
+                                            )}
+                                        </div>
+                                    </Combobox>
+                                </div>
                             </div>
-                            <div className="relative  ">
-                                <input
-                                    id="search-field"
-                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 text-sm"
-                                    placeholder="Min Age"
-                                    name="search"
-                                    type="search" value={ageMin} onChange={e => setAgeMin(e.target.value)}
-                                />
-                            </div>
-                            <div className="relative  ">
-                                <input
-                                    id="search-field"
-                                    className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
-                                    placeholder="Max Age"
-                                    name="search"
-                                    type="search" value={ageMax} onChange={e => setAgeMax(e.target.value)}
-                                />
-                            </div>
-                            {/* location search input */}
-                            <div className="relative w-2/3">
-                                <Combobox as="div" value={selectedLocation} onChange={setSelectedLocation} >
-                                    <div className="relative">
-                                        <Combobox.Input
-                                            className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-                                            onChange={(event) => setLocationQuery(event.target.value)}
-                                            displayValue={(location) => location?.city}
-                                            placeholder="Location(i.e. Los Angeles, CA or 90210)"
-                                        />
-                                        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                        </Combobox.Button>
-                                        {filteredLocation.length > 0 && (
-                                            <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                {filteredLocation.map((location) => (
-                                                    <Combobox.Option
-                                                        key={location.zip_code}
-                                                        value={location}
-                                                        className={({ active }) =>
-                                                            classNames(
-                                                                'relative cursor-default select-none py-2 pl-3 pr-9',
-                                                                active ? 'bg-gray-600 text-white' : 'text-gray-900'
-                                                            )
-                                                        }
-                                                    >
-                                                        {({ active, selected }) => (
-                                                            <>
-                                                                <span className={classNames('block truncate', selected && 'font-semibold')}>{location.city}, {location.state}</span>
-                                                                {selected && (
-                                                                    <span
-                                                                        className={classNames(
-                                                                            'absolute inset-y-0 right-0 flex items-center pr-4',
-                                                                            active ? 'text-white' : 'text-gray-600'
-                                                                        )}
-                                                                    >
-                                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                                                    </span>
-                                                                )}
-                                                            </>
-                                                        )}
-                                                    </Combobox.Option>
-                                                ))}
-                                            </Combobox.Options>
-                                        )}
-                                    </div>
-                                </Combobox>
+                            {/* Age and Latitude/Longitude search input */}
+                            <div className="flex justify-evenly gap-x-2">
+                                <div className="relative  ">
+                                    <input
+                                        id="search-field"
+                                        className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 text-sm"
+                                        name="search"
+                                        placeholder="Min Age"
+                                        onKeyPress={keyPressHandler}
+                                        type="search" value={ageMin} onChange={e => setAgeMin(e.target.value)}
+                                    />
+                                </div>
+                                <div className="relative  ">
+                                    <input
+                                        id="search-field"
+                                        className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
+                                        placeholder="Max Age"
+                                        name="search"
+                                        onKeyPress={keyPressHandler}
+                                        type="search" value={ageMax} onChange={e => setAgeMax(e.target.value)}
+                                    />
+                                </div>
+                                <div className="relative  ">
+                                    <input
+                                        id="search-field"
+                                        className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
+                                        placeholder="Latitude"
+                                        name="search"
+                                        type="search"
+                                        value={latitude !== undefined ? latitude.toString() : ""}
+                                        onChange={handleLatitudeChange}
+                                        onKeyPress={keyPressHandler}
+                                    />
+                                </div>
+                                <div className="relative  ">
+                                    <input
+                                        id="search-field"
+                                        className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
+                                        placeholder="Longitude"
+                                        name="search"
+                                        type="search"
+                                        value={longitude !== undefined ? longitude.toString() : ""}
+                                        onChange={handleLongitudeChange}
+                                        onKeyPress={keyPressHandler}
+                                    />
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -251,29 +300,6 @@ const DogInfo = () => {
                         Search
                     </button>
                 </div>
-                <div>
-                    <label>Latitude: </label>
-                    <input
-                        type="text"
-                        value={latitude !== undefined ? latitude.toString() : ''}
-                        onChange={(e) => setLatitude(parseFloat(e.target.value))}
-                    />
-                </div>
-                <div>
-                    <label>Longitude: </label>
-                    <input
-                        type="text"
-                        value={longitude !== undefined ? longitude.toString() : ''}
-                        onChange={(e) => setLongitude(parseFloat(e.target.value))}
-                    />
-                </div>
-                <button
-                    type="button"
-                    className="relative inline-flex items-center gap-x-1.5 rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                    onClick={() => fetchZipCode(parseFloat(latitude), parseFloat(longitude))}
-                >
-                    Search
-                </button>
 
                 {/* Table description, Generate Match and Size */}
                 <div className="sm:flex sm:items-center">
@@ -435,7 +461,6 @@ const DogInfo = () => {
                             <div className="flex flex-1 justify-between sm:justify-end gap-3">
                                 {searchResults.prev && <button onClick={() => fetchNext(searchResults.prev)}>Prev</button>}
                                 {searchResults.next && <button onClick={() => fetchNext(searchResults.next)}>Next</button>}
-
                             </div>
                         </nav>
                     </div >

@@ -32,32 +32,6 @@ interface DogFilters {
     sort?: string,
     size?: number;
     from?: string;
-    geoBoundingBox?: {
-        top?: {
-            lat: number;
-            lon: number;
-        };
-        bottom?: {
-            lat: number;
-            lon: number;
-        };
-        bottom_left?: {
-            lat: number;
-            lon: number;
-        };
-        top_right?: {
-            lat: number;
-            lon: number;
-        };
-        bottom_right?: {
-            lat: number;
-            lon: number;
-        };
-        top_left?: {
-            lat: number;
-            lon: number;
-        };
-    };
 }
 
 
