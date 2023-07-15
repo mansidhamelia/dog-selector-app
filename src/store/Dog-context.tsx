@@ -34,8 +34,6 @@ interface DogFilters {
     from?: string;
 }
 
-
-
 interface DogSearchContextProps {
     breeds: string[],
     allDogs: Dog[],
@@ -49,7 +47,6 @@ interface DogSearchContextProps {
     fetchNext: (link: string) => void;
     endIndex: number;
     fetchZipCode: (lat: number, lon: number) => void;
-
 }
 
 export const DogSearchContext = createContext<DogSearchContextProps>({
@@ -65,7 +62,6 @@ export const DogSearchContext = createContext<DogSearchContextProps>({
     fetchNext: (link: string) => { },
     endIndex: 25,
     fetchZipCode: () => { }
-
 });
 
 const baseURL = 'https://frontend-take-home-service.fetch.com';
@@ -93,9 +89,8 @@ export function DogSearchProvider({ children }) {
         }
     };
 
-    // Fetch dogs search results
+    // Fetch dogs based on the provided filters
     const fetchDogs = async (filters?: DogFilters) => {
-        // Fetch dogs based on the provided filters
         try {
             let queryString = '';
             if (filters) {
@@ -110,7 +105,6 @@ export function DogSearchProvider({ children }) {
                 queryString = params.toString();
             }
 
-            // Fetch dogs with filters
             const response = await fetch(`${baseURL}/dogs/search?${queryString}`, {
                 method: 'GET',
                 credentials: 'include',
@@ -126,7 +120,7 @@ export function DogSearchProvider({ children }) {
                 const nextFromValue = nextPage ? nextPage.match(/from=(\d+)/)[1] : null;
                 setEndIndex(nextFromValue)
 
-                // Fetch dog details
+                    // Fetch dog details based on Ids
                 fetchDogDetails(dogIds)
             } else {
                 console.error('Failed to fetch dogs');
@@ -134,7 +128,6 @@ export function DogSearchProvider({ children }) {
         } catch (error) {
             console.error('Failed to fetch dogs:', error);
         }
-
     };
 
     // fetch dogs details as per ids
@@ -260,8 +253,24 @@ export function DogSearchProvider({ children }) {
         }
     };
 
+
+    const contextValue = {
+        breeds,
+        searchResults,
+        favoriteDogs,
+        fetchBreeds,
+        fetchDogs,
+        fetchLocations,
+        searchLocations,
+        toggleFavorite,
+        allDogs,
+        fetchNext,
+        endIndex,
+        fetchZipCode: (lat: number, lon: number) => fetchZipCode(lat, lon),
+    };
+
     return (
-        <DogSearchContext.Provider value={{ breeds, searchResults, favoriteDogs, fetchBreeds, fetchDogs, fetchLocations, searchLocations, toggleFavorite, allDogs, fetchNext, endIndex, fetchZipCode: (lat: number, lon: number) => fetchZipCode(lat, lon) }}>
+        <DogSearchContext.Provider value={contextValue}>
             {children}
         </DogSearchContext.Provider >
     );

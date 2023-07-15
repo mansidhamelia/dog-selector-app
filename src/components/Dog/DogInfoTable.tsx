@@ -62,7 +62,7 @@ const DogInfo = () => {
 
     const searchHandler = () => {
         const filters: DogFilters = {
-            breeds: selectedBreeds.length > 0 ? [selectedBreeds] : undefined,
+            breeds: selectedBreeds?.length > 0 ? [selectedBreeds] : undefined,
             ageMin: ageMin ? Number(ageMin) : undefined,
             ageMax: ageMax ? Number(ageMax) : undefined,
             zipCodes: selectedLocation ? [selectedLocation.zip_code] : locationQuery ? [locationQuery] : undefined,
@@ -71,9 +71,17 @@ const DogInfo = () => {
         };
 
         fetchDogs(filters);
-        if (latitude != undefined) {
-            fetchZipCode(latitude, longitude)
+        if (latitude !== undefined && longitude !== undefined) {
+            fetchZipCode(latitude, longitude);
         }
+    };
+
+
+    const handleSelectedBreedsChange = (value) => {
+        setSelectedBreeds((prevSelected) => (prevSelected === value ? null : value));
+    };
+    const handleSelectedLocationChange = (value) => {
+        setSelectedLocation((prevSelected) => (prevSelected === value ? null : value));
     };
 
     const handleLatitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,12 +97,13 @@ const DogInfo = () => {
     const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
             searchHandler()
-            fetchZipCode(latitude, longitude)
+            if (latitude !== undefined && longitude !== undefined) {
+                fetchZipCode(latitude, longitude);
+            }
         }
     };
 
     useEffect(() => {
-        fetchDogs()
         fetchBreeds();
         fetchLocations();
     }, [])
@@ -133,7 +142,6 @@ const DogInfo = () => {
         }
     };
 
-
     return (
         <>
             <div className="px-4 sm:px-6 lg:px-8 ">
@@ -144,7 +152,7 @@ const DogInfo = () => {
                             {/* Location and Breed search input */}
                             <div className="flex justify-between w-full  gap-x-2">
                                 <div className="relative w-1/2">
-                                    <Combobox as="div" value={selectedBreeds} onChange={setSelectedBreeds}>
+                                    <Combobox as="div" value={selectedBreeds} onChange={handleSelectedBreedsChange}>
                                         <div className="relative">
                                             <Combobox.Input
                                                 className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
@@ -191,7 +199,7 @@ const DogInfo = () => {
                                     </Combobox>
                                 </div>
                                 <div className="relative w-1/2">
-                                    <Combobox as="div" value={selectedLocation} onChange={setSelectedLocation} >
+                                    <Combobox as="div" value={selectedLocation} onChange={handleSelectedLocationChange} >
                                         <div className="relative">
                                             <Combobox.Input
                                                 className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
