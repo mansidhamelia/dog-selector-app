@@ -307,21 +307,21 @@ const DogInfo = () => {
                                         />
                                     </div>
                                     <div className="relative  ">
-                                        <input
+                                        {/* <input
                                             id="search-field"
                                             className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
                                             placeholder="Latitude"
                                             name="search"
                                             type="search"
-                                            value={latitude !== undefined ? latitude.toString() : ""}
+                                            // value={latitude !== undefined ? latitude.toString() : ""}
                                             onChange={handleLatitudeChange}
                                             onKeyPress={keyPressHandler}
-                                        />
+                                        /> */}
 
 
                                     </div>
                                     <div className="relative  ">
-                                        <input
+                                        {/* <input
                                             id="search-field"
                                             className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
                                             placeholder="Longitude"
@@ -330,7 +330,7 @@ const DogInfo = () => {
                                             value={longitude !== undefined ? longitude.toString() : ""}
                                             onChange={handleLongitudeChange}
                                             onKeyPress={keyPressHandler}
-                                        />
+                                        /> */}
 
 
 
