@@ -27,7 +27,7 @@ const size = [
 ]
 
 const DogInfo = () => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNext, endIndex, fetchZipCode } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNext, endIndex, fetchZipCode, currentPage, setCurrentPage } = useContext(DogSearchContext);
 
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
@@ -36,11 +36,17 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
-    const [latitude, setLatitude] = useState<number | undefined>();
-    const [longitude, setLongitude] = useState<number | undefined>();
+    const [latitudeValue, setLatitudeValue] = useState<number>();
+    const [longitude, setLongitude] = useState<number>();
 
     const [query, setQuery] = useState('');
     const [locationQuery, setLocationQuery] = useState('')
+    const [latQuery, setLatQuery] = useState('');
+    const [lonQuery, setLonQuery] = useState('');
+
+    const startIndex = (currentPage - 1) * sizeValue + 1;
+    const endIndex1 = Math.min(startIndex + sizeValue - 1, searchResults.total);
+
 
     const filteredBreed =
         query === ''
@@ -57,6 +63,23 @@ const DogInfo = () => {
                     location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
                     location.zip_code === locationQuery ||
                     location.state.toLowerCase().includes(locationQuery.toLowerCase())
+                    // location.longitude === locationQuery
+                )
+            })
+    const filteredLat =
+        latQuery === ''
+            ? searchLocations :
+            searchLocations.filter((location) => {
+                return (
+                    location.latitude === latQuery
+                )
+            })
+    const filteredLon =
+        lonQuery === ''
+            ? searchLocations :
+            searchLocations.filter((location) => {
+                return (
+                    location.longitude === latQuery
                 )
             })
 
@@ -71,11 +94,19 @@ const DogInfo = () => {
         };
 
         fetchDogs(filters);
-        if (latitude !== undefined && longitude !== undefined) {
-            fetchZipCode(latitude, longitude);
+        if (latitudeValue !== undefined && longitude !== undefined) {
+            fetchZipCode(latitudeValue, longitude);
         }
     };
 
+    const previousPageHandler = () => {
+        setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
+        fetchNext(searchResults.prev)
+    }
+    const nextPageHandler = () => {
+        setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(searchResults.total / sizeValue)))
+        fetchNext(searchResults.next)
+    }
 
     const handleSelectedBreedsChange = (value) => {
         setSelectedBreeds((prevSelected) => (prevSelected === value ? null : value));
@@ -84,21 +115,22 @@ const DogInfo = () => {
         setSelectedLocation((prevSelected) => (prevSelected === value ? null : value));
     };
 
-    const handleLatitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setLatitude(value === "" ? undefined : parseFloat(value));
+    const handleLatitudeChange = (value) => {
+        // setLatitude(value === "" ? undefined : parseFloat(value));
+        setLatitudeValue((prevSelected) => (prevSelected === value ? null : value));
+
     };
 
-    const handleLongitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setLongitude(value === "" ? undefined : parseFloat(value));
+    const handleLongitudeChange = (value) => {
+        // setLongitude(value === "" ? undefined : parseFloat(value));
+        setLongitude((prevSelected) => (prevSelected === value ? null : value))
     };
 
     const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
             searchHandler()
-            if (latitude !== undefined && longitude !== undefined) {
-                fetchZipCode(latitude, longitude);
+            if (latitudeValue !== undefined && longitude !== undefined) {
+                fetchZipCode(latitudeValue, longitude);
             }
         }
     };
@@ -107,6 +139,10 @@ const DogInfo = () => {
         fetchBreeds();
         fetchLocations();
     }, [])
+
+    // useEffect(() => {
+
+    // }, [currentPage])
 
     useEffect(() => {
         searchHandler()
@@ -205,7 +241,7 @@ const DogInfo = () => {
                                                 <Combobox.Input
                                                     className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                                     onChange={(event) => setLocationQuery(event.target.value)}
-                                                    displayValue={(location) => location?.city}
+                                                    // displayValue={(location) => location?.city}
                                                     placeholder="Location(i.e. Los Angeles, CA or 90210)"
                                                     onKeyPress={keyPressHandler}
                                                 />
@@ -281,6 +317,8 @@ const DogInfo = () => {
                                             onChange={handleLatitudeChange}
                                             onKeyPress={keyPressHandler}
                                         />
+
+
                                     </div>
                                     <div className="relative  ">
                                         <input
@@ -293,6 +331,9 @@ const DogInfo = () => {
                                             onChange={handleLongitudeChange}
                                             onKeyPress={keyPressHandler}
                                         />
+
+
+
                                     </div>
                                 </div>
                             </form>
@@ -464,13 +505,15 @@ const DogInfo = () => {
                         >
                             <div className="hidden sm:block">
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{endIndex - sizeValue + 1}</span> to <span className="font-medium">{endIndex}</span> of{' '}
+                                    Showing <span className="font-medium">{startIndex}</span> to <span className="font-medium">{endIndex1}</span> of{' '}
                                     <span className="font-medium">{searchResults.total}</span> results
                                 </p>
                             </div>
                             <div className="flex flex-1 justify-between sm:justify-end gap-3">
-                                {searchResults.prev && <button onClick={() => fetchNext(searchResults.prev)}>Prev</button>}
-                                {searchResults.next && <button onClick={() => fetchNext(searchResults.next)}>Next</button>}
+                                {searchResults.prev && <button disabled={currentPage === 1} onClick={previousPageHandler}>Prev</button>}
+                                {searchResults.next && currentPage !== Math.ceil(searchResults.total / sizeValue) && <button
+                                    disabled={currentPage === Math.ceil(searchResults.total / sizeValue)}
+                                    onClick={nextPageHandler}>Next</button>}
                             </div>
                         </nav>
                     </div >
