@@ -505,15 +505,16 @@ const DogInfo = () => {
                         >
                             <div className="hidden sm:block">
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{startIndex}</span> to <span className="font-medium">{endIndex1}</span> of{' '}
+                                    Showing <span className="font-medium">{searchResults.total >= 1 ? startIndex : 0}</span> to <span className="font-medium">{endIndex1}</span> of{' '}
                                     <span className="font-medium">{searchResults.total}</span> results
                                 </p>
                             </div>
                             <div className="flex flex-1 justify-between sm:justify-end gap-3">
                                 {searchResults.prev && <button disabled={currentPage === 1} onClick={previousPageHandler}>Prev</button>}
-                                {searchResults.next && currentPage !== Math.ceil(searchResults.total / sizeValue) && <button
-                                    disabled={currentPage === Math.ceil(searchResults.total / sizeValue)}
-                                    onClick={nextPageHandler}>Next</button>}
+                                {searchResults.next &&
+                                    searchResults.total > sizeValue &&
+                                    <button
+                                        onClick={nextPageHandler}>Next</button>}
                             </div>
                         </nav>
                     </div >
