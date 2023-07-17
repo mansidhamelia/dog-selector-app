@@ -619,18 +619,9 @@ const DogInfo = () => {
                             </div>
                         </div>
 
+                        {/* Pagination */}
                         <nav className="flex-row items-center  border-t border-gray-200 px-4 py-3 sm:px-0">
-                            <div className="flex items-center justify-between">
-                                <div className="-mt-px flex w-0 flex-1">
-                                    {searchResults.prev && <a
-                                        href="#"
-                                        className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                                        onClick={previousPageHandler}
-                                    >
-                                        <ArrowLongLeftIcon className="mr-3 h-5 w-5 text-gray-400" aria-hidden="true" />
-                                        Previous
-                                    </a>}
-                                </div>
+                            <div className="flex items-center justify-center">
                                 <div className="hidden md:-mt-px md:flex">
                                     <a
                                         href="#"
@@ -638,8 +629,14 @@ const DogInfo = () => {
                                         onClick={goToFirstPageHandler}
                                     >
                                         <ChevronDoubleLeftIcon className="mr-3 h-5 w-5 text-gray-400" aria-hidden="true" />
-
                                     </a>
+                                    {searchResults.prev && <a
+                                        href="#"
+                                        className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                        onClick={previousPageHandler}
+                                    >
+                                        Previous
+                                    </a>}
                                     {getPageRange().map((pageNumber) => (
                                         <a
                                             key={pageNumber}
@@ -653,6 +650,14 @@ const DogInfo = () => {
                                             {pageNumber}
                                         </a>
                                     ))}
+                                    {currentPage !== totalPages && searchResults.total > sizeValue && (
+                                        <a
+                                            href="#"
+                                            className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                            onClick={nextPageHandler}
+                                        >
+                                            Next
+                                        </a>)}
                                     <a
                                         href="#"
                                         className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
@@ -661,18 +666,6 @@ const DogInfo = () => {
 
                                         <ChevronDoubleRightIcon className="ml-3 h-5 w-5 text-gray-400" aria-hidden="true" />
                                     </a>
-                                </div>
-                                <div className="-mt-px flex w-0 flex-1 justify-end">
-                                    {currentPage !== totalPages && searchResults.total > sizeValue && (
-
-                                        <a
-                                            href="#"
-                                            className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                                            onClick={nextPageHandler}
-                                        >
-                                            Next
-                                            <ArrowLongRightIcon className="ml-3 h-5 w-5 text-gray-400" aria-hidden="true" />
-                                        </a>)}
                                 </div>
                             </div>
                             <div className="hidden sm:block mt-2">
