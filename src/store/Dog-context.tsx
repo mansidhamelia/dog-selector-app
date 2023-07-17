@@ -231,7 +231,7 @@ export function DogSearchProvider({ children }) {
                 const data: { results: Location[]; total: number } = await response.json();
                 if (data.total > 0) {
                     const filteredZipCodes = data.results.filter(
-                        (location) => parseFloat(location.latitude) === latitude && parseFloat(location.longitude) === longitude
+                        (location) => parseFloat(location.latitude) === parseFloat(latitude) && parseFloat(location.longitude) === parseFloat(longitude)
                     )
                     if (filteredZipCodes.length > 0) {
                         const zipCode = filteredZipCodes[0].zip_code;

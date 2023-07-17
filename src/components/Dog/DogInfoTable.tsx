@@ -59,6 +59,8 @@ const DogInfo = () => {
         locationQuery === ''
             ? searchLocations
             : searchLocations.filter((location) => {
+                console.log(locationQuery, ' location');
+                console.log(location.city, 'lattitude')
                 return (
                     location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
                     location.zip_code === locationQuery ||
@@ -71,16 +73,15 @@ const DogInfo = () => {
             ? searchLocations :
             searchLocations.filter((location) => {
                 console.log(latQuery, 'lat location');
-                return (
-                    location.latitude === latQuery
-                )
+                console.log(location.latitude, 'lattitude')
+                return (location.latitude === parseFloat(latQuery))
             })
     const filteredLon =
         lonQuery === ''
             ? searchLocations :
             searchLocations.filter((location) => {
                 return (
-                    location.longitude === lonQuery
+                    location.longitude === parseFloat(lonQuery)
                 )
             })
 
@@ -115,19 +116,26 @@ const DogInfo = () => {
     const handleSelectedLocationChange = (value) => {
         setSelectedLocation((prevSelected) => (prevSelected === value ? null : value));
     };
-    const handleLatitudeChange = (value: string) => {
-        setLatitudeValue(value === "" ? undefined : parseFloat(value));
+    const handleLatitudeChange = (value: number) => {
+        setLatitudeValue((prevSelected) => (prevSelected === value ? null : value));
     };
 
-    const handleLongitudeChange = (value: string) => {
-        setLongitude(value === "" ? undefined : parseFloat(value));
+    const handleLongitudeChange = (value: number) => {
+        setLongitude((prevSelected) => (prevSelected === value ? null : value));
+
     };
 
     const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
-            if (latitudeValue !== undefined || longitude !== undefined) {
-                fetchZipCode(latitudeValue, longitude);
-            }
+            // if (latitudeValue !== undefined && longitude !== undefined) {
+            //     const lat = parseFloat(latitudeValue);
+            //     const lon = parseFloat(longitude);
+            //     if (!isNaN(lat) && !isNaN(lon)) {
+            //         fetchZipCode(lat, lon);
+            //     } else {
+            //         console.error('Invalid latitude or longitude');
+            //     }
+            // }
             searchHandler()
         }
     };
@@ -314,12 +322,15 @@ const DogInfo = () => {
                                             onChange={(e) => setLatitudeValue(parseFloat(e.target.value))}
                                             onKeyPress={keyPressHandler}
                                         /> */}
-                                        <Combobox as="div" value={latitudeValue !== undefined ? latitudeValue : ""} onChange={handleLatitudeChange} >
+                                        <Combobox as="div" value={latitudeValue} onChange={handleLatitudeChange} >
                                             <div className="relative">
                                                 <Combobox.Input
                                                     className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                                     onChange={(event) => setLatQuery(event.target.value)}
-                                                    displayValue={(location: { latitude?: number }) => (location?.latitude !== undefined ? location.latitude.toString() : "")}
+                                                    displayValue={(location: { latitude?: number }) =>
+                                                        location?.latitude !== undefined ? location.latitude.toString() : ''
+                                                    }
+                                                    // displayValue={(location) => location?.latitude}
                                                     placeholder="Latitude"
                                                     onKeyPress={keyPressHandler}
                                                 />
@@ -330,8 +341,8 @@ const DogInfo = () => {
                                                     <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                                         {filteredLat.map((location) => (
                                                             <Combobox.Option
-                                                                key={location.zip_code}
-                                                                value={location.latitude}
+                                                                key={location.latitude}
+                                                                value={location.latitude.toString()}
                                                                 className={({ active }) =>
                                                                     classNames(
                                                                         'relative cursor-default select-none py-2 pl-3 pr-9',
@@ -375,14 +386,13 @@ const DogInfo = () => {
                                             onKeyPress={keyPressHandler}
                                         /> */}
 
-                                        <Combobox as="div" value={longitude !== undefined ? longitude : ""} onChange={handleLongitudeChange} >
+                                        <Combobox as="div" value={longitude} onChange={handleLongitudeChange} >
                                             <div className="relative">
                                                 <Combobox.Input
                                                     className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                                     onChange={(event) => setLonQuery(event.target.value)}
-                                                    displayValue={(location) => location?.longitude}
-                                                    // displayValue={(location: { longitude?: number }) => (location?.longitude ? location.longitude.toString() : "")}
-
+                                                    // displayValue={(location) => location?.longitude}
+                                                    displayValue={(location: { longitude?: number }) => (location?.longitude ? location.longitude.toString() : "")}
                                                     placeholder="Longitude"
                                                     onKeyPress={keyPressHandler}
                                                 />
@@ -393,8 +403,8 @@ const DogInfo = () => {
                                                     <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                                         {filteredLon.map((location) => (
                                                             <Combobox.Option
-                                                                key={location.zip_code}
-                                                                value={location.longitude}
+                                                                key={location.longitude}
+                                                                value={location.longitude.toString()}
                                                                 className={({ active }) =>
                                                                     classNames(
                                                                         'relative cursor-default select-none py-2 pl-3 pr-9',
