@@ -482,7 +482,8 @@ const DogInfo = () => {
                     <div className="mt-4 flex gap-x-2">
                         <button
                             type="button"
-                            className=" items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                            className={`items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${favoriteDogs.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-600 hover:bg-gray-500'
+                                }`}
                             onClick={handleMatch} disabled={favoriteDogs.length === 0}                    >
                             Generate Match
                         </button>
