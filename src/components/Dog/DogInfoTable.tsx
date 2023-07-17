@@ -136,7 +136,6 @@ const DogInfo = () => {
 
     // Pagination Logic
     const goToPage = (pageNumber) => {
-        // setCurrentPage(pageNumber);
         const fromValue = (pageNumber - 1) * sizeValue;
         setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
 
@@ -152,7 +151,6 @@ const DogInfo = () => {
         setCurrentPage(1);
         fetchNextAndPrev(searchResults.prev);
     };
-
     const goToLastPageHandler = () => {
         setCurrentPage(totalPages);
         fetchNextAndPrev(searchResults.next);
@@ -578,12 +576,7 @@ const DogInfo = () => {
                                                     </a>
                                                 </th>
                                                 <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
-                                                    <a href="#" className="group inline-flex" onClick={() => handleSort(sort === 'zipCodes:asc' ? 'zipCodes:desc' : 'zipCodes:asc')}>
-                                                        Zip Code
-                                                        <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
-                                                        </span>
-                                                    </a>
+                                                    Zip Code
                                                 </th>
                                             </tr>
                                         </thead>
