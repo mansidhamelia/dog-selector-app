@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react"
-import { MagnifyingGlassIcon, ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid'
+import { MagnifyingGlassIcon, ChevronUpDownIcon, CheckIcon, ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
 import { DogSearchContext } from "../../store/Dog-context"
 import { Combobox } from '@headlessui/react'
 import MatchedDogModal from "./MatchedDog"
@@ -18,6 +18,7 @@ interface DogFilters {
     ageMax?: number;
     sort?: string;
     size?: number;
+    from?: number;
 }
 
 const size = [
@@ -27,7 +28,7 @@ const size = [
 ]
 
 const DogInfo = () => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNext, endIndex, fetchZipCode, currentPage, setCurrentPage } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNextAndPrev, endIndex, fetchZipCode, currentPage, setCurrentPage } = useContext(DogSearchContext);
 
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
@@ -46,7 +47,38 @@ const DogInfo = () => {
 
     const startIndex = (currentPage - 1) * sizeValue + 1;
     const endIndex1 = Math.min(startIndex + sizeValue - 1, searchResults.total);
+    const totalPages = Math.ceil(searchResults.total / sizeValue);
 
+    const goToPage = (pageNumber) => {
+
+        // setCurrentPage(pageNumber);
+        const fromValue = (pageNumber - 1) * sizeValue;
+        setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
+
+        const filters: DogFilters = {
+            breeds: selectedBreeds?.length > 0 ? [selectedBreeds] : undefined,
+            sort: sort,
+            size: sizeValue,
+            from: fromValue ? Number(fromValue) : undefined,
+        };
+        fetchDogs(filters);
+    };
+
+    const getPageRange = () => {
+        const pageRange = [];
+        const maxPageNumbersToShow = 5;
+
+        let startPage = Math.max(1, currentPage - Math.floor(maxPageNumbersToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
+
+        if (endPage - startPage + 1 < maxPageNumbersToShow) {
+            startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
+        }
+        for (let page = startPage; page <= endPage; page++) {
+            pageRange.push(page);
+        }
+        return pageRange;
+    };
 
     const filteredBreed =
         query === ''
@@ -86,6 +118,7 @@ const DogInfo = () => {
             })
 
     const searchHandler = () => {
+        setCurrentPage(1)
         const filters: DogFilters = {
             breeds: selectedBreeds?.length > 0 ? [selectedBreeds] : undefined,
             ageMin: ageMin ? Number(ageMin) : undefined,
@@ -103,11 +136,11 @@ const DogInfo = () => {
 
     const previousPageHandler = () => {
         setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
-        fetchNext(searchResults.prev)
+        fetchNextAndPrev(searchResults.prev)
     }
     const nextPageHandler = () => {
         setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(searchResults.total / sizeValue)))
-        fetchNext(searchResults.next)
+        fetchNextAndPrev(searchResults.next)
     }
 
     const handleSelectedBreedsChange = (value) => {
@@ -122,7 +155,6 @@ const DogInfo = () => {
 
     const handleLongitudeChange = (value: number) => {
         setLongitude((prevSelected) => (prevSelected === value ? null : value));
-
     };
 
     const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -136,6 +168,7 @@ const DogInfo = () => {
             //         console.error('Invalid latitude or longitude');
             //     }
             // }
+            setCurrentPage(1)
             searchHandler()
         }
     };
@@ -144,10 +177,6 @@ const DogInfo = () => {
         fetchBreeds();
         fetchLocations();
     }, [])
-
-    // useEffect(() => {
-
-    // }, [currentPage])
 
     useEffect(() => {
         searchHandler()
@@ -312,16 +341,7 @@ const DogInfo = () => {
                                         />
                                     </div>
                                     <div className="relative  ">
-                                        {/* <input
-                                            id="search-field"
-                                            className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
-                                            placeholder="Latitude"
-                                            name="search"
-                                            type="search"
-                                            value={latitudeValue !== undefined ? latitudeValue.toString() : ""}
-                                            onChange={(e) => setLatitudeValue(parseFloat(e.target.value))}
-                                            onKeyPress={keyPressHandler}
-                                        /> */}
+
                                         <Combobox as="div" value={latitudeValue} onChange={handleLatitudeChange} >
                                             <div className="relative">
                                                 <Combobox.Input
@@ -375,16 +395,7 @@ const DogInfo = () => {
 
                                     </div>
                                     <div className="relative  ">
-                                        {/* <input
-                                            id="search-field"
-                                            className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
-                                            placeholder="Longitude"
-                                            name="search"
-                                            type="search"
-                                            value={longitude !== undefined ? longitude.toString() : ""}
-                                            onChange={(e) => setLongitude(parseFloat(e.target.value))}
-                                            onKeyPress={keyPressHandler}
-                                        /> */}
+
 
                                         <Combobox as="div" value={longitude} onChange={handleLongitudeChange} >
                                             <div className="relative">
@@ -599,22 +610,52 @@ const DogInfo = () => {
                             </div>
                         </div>
 
-                        <nav
-                            className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
-                            aria-label="Pagination"
-                        >
-                            <div className="hidden sm:block">
+                        <nav className="flex-row items-center  border-t border-gray-200 px-4 py-3 sm:px-0">
+                            <div className="flex items-center justify-between">
+                                <div className="-mt-px flex w-0 flex-1">
+                                    {searchResults.prev && <a
+                                        href="#"
+                                        className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                        onClick={previousPageHandler}
+                                    >
+                                        <ArrowLongLeftIcon className="mr-3 h-5 w-5 text-gray-400" aria-hidden="true" />
+                                        Previous
+                                    </a>}
+                                </div>
+                                <div className="hidden md:-mt-px md:flex">
+                                    {getPageRange().map((pageNumber) => (
+                                        <a
+                                            key={pageNumber}
+                                            href="#"
+                                            className={`inline-flex items-center ${pageNumber === currentPage
+                                                ? 'border-t-2 border-indigo-500 px-4 pt-4 text-sm font-medium text-indigo-600'
+                                                : 'border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                                }`}
+                                            onClick={() => goToPage(pageNumber)}
+                                        >
+                                            {pageNumber}
+                                        </a>
+                                    ))}
+
+                                </div>
+                                <div className="-mt-px flex w-0 flex-1 justify-end">
+                                    {currentPage !== totalPages && searchResults.total > sizeValue && (
+
+                                        <a
+                                            href="#"
+                                            className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                            onClick={nextPageHandler}
+                                        >
+                                            Next
+                                            <ArrowLongRightIcon className="ml-3 h-5 w-5 text-gray-400" aria-hidden="true" />
+                                        </a>)}
+                                </div>
+                            </div>
+                            <div className="hidden sm:block mt-2">
                                 <p className="text-sm text-gray-700">
                                     Showing <span className="font-medium">{searchResults.total >= 1 ? startIndex : 0}</span> to <span className="font-medium">{endIndex1}</span> of{' '}
                                     <span className="font-medium">{searchResults.total}</span> results
                                 </p>
-                            </div>
-                            <div className="flex flex-1 justify-between sm:justify-end gap-3">
-                                {searchResults.prev && <button disabled={currentPage === 1} onClick={previousPageHandler}>Prev</button>}
-                                {searchResults.next &&
-                                    searchResults.total > sizeValue &&
-                                    <button
-                                        onClick={nextPageHandler}>Next</button>}
                             </div>
                         </nav>
                     </div >

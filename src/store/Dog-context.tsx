@@ -31,7 +31,7 @@ interface DogFilters {
     ageMax?: number;
     sort?: string,
     size?: number;
-    from?: string;
+    from?: number;
 }
 
 interface DogSearchContextProps {
@@ -44,7 +44,7 @@ interface DogSearchContextProps {
     fetchBreeds: () => void;
     toggleFavorite: (dogId: string) => void;
     fetchLocations: () => void;
-    fetchNext: (link: string) => void;
+    fetchNextAndPrev: (link: string) => void;
     endIndex: number;
     currentPage: number;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
@@ -61,7 +61,7 @@ export const DogSearchContext = createContext<DogSearchContextProps>({
     fetchBreeds: () => { },
     toggleFavorite: () => { },
     fetchLocations: () => { },
-    fetchNext: (link: string) => { },
+    fetchNextAndPrev: (link: string) => { },
     endIndex: 25,
     currentPage: 1,
     setCurrentPage: () => { },
@@ -99,7 +99,7 @@ export function DogSearchProvider({ children }) {
         try {
             let queryString = '';
             if (filters) {
-                const { breeds, zipCodes, ageMin, ageMax, sort, size } = filters;
+                const { breeds, zipCodes, ageMin, ageMax, sort, size, from } = filters;
                 const params = new URLSearchParams();
                 if (breeds) params.append('breeds', breeds.join(','));
                 if (zipCodes) params.append('zipCodes', zipCodes.join(','));
@@ -107,6 +107,7 @@ export function DogSearchProvider({ children }) {
                 if (ageMax) params.append('ageMax', ageMax.toString());
                 if (sort) params.append('sort', sort.toString());
                 if (size) params.append('size', size.toString());
+                if (from) params.append('from', from.toString())
                 queryString = params.toString();
             }
 
@@ -119,7 +120,7 @@ export function DogSearchProvider({ children }) {
                 const data: SearchResult = await response.json();
                 const dogIds = data.resultIds;
                 setSearchResults(data);
-                setCurrentPage(1);
+                // setCurrentPage(1);
 
                 // Fetch dog details based on Ids
                 fetchDogDetails(dogIds)
@@ -156,7 +157,7 @@ export function DogSearchProvider({ children }) {
     }
 
     // fetch next and prev data
-    const fetchNext = async (link: any) => {
+    const fetchNextAndPrev = async (link: any) => {
         try {
             const response = await fetch(`${baseURL}${link}`, {
                 credentials: 'include',
@@ -265,7 +266,7 @@ export function DogSearchProvider({ children }) {
         searchLocations,
         toggleFavorite,
         allDogs,
-        fetchNext,
+        fetchNextAndPrev,
         endIndex,
         currentPage,
         setCurrentPage,
