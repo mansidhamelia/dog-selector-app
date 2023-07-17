@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react"
-import { MagnifyingGlassIcon, ChevronUpDownIcon, CheckIcon, ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
+import { MagnifyingGlassIcon, ChevronUpDownIcon, CheckIcon, ArrowLongLeftIcon, ArrowLongRightIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/20/solid'
 import { DogSearchContext } from "../../store/Dog-context"
 import { Combobox } from '@headlessui/react'
 import MatchedDogModal from "./MatchedDog"
@@ -49,36 +49,6 @@ const DogInfo = () => {
     const endIndex1 = Math.min(startIndex + sizeValue - 1, searchResults.total);
     const totalPages = Math.ceil(searchResults.total / sizeValue);
 
-    const goToPage = (pageNumber) => {
-
-        // setCurrentPage(pageNumber);
-        const fromValue = (pageNumber - 1) * sizeValue;
-        setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
-
-        const filters: DogFilters = {
-            breeds: selectedBreeds?.length > 0 ? [selectedBreeds] : undefined,
-            sort: sort,
-            size: sizeValue,
-            from: fromValue ? Number(fromValue) : undefined,
-        };
-        fetchDogs(filters);
-    };
-
-    const getPageRange = () => {
-        const pageRange = [];
-        const maxPageNumbersToShow = 5;
-
-        let startPage = Math.max(1, currentPage - Math.floor(maxPageNumbersToShow / 2));
-        let endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
-
-        if (endPage - startPage + 1 < maxPageNumbersToShow) {
-            startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
-        }
-        for (let page = startPage; page <= endPage; page++) {
-            pageRange.push(page);
-        }
-        return pageRange;
-    };
 
     const filteredBreed =
         query === ''
@@ -134,15 +104,6 @@ const DogInfo = () => {
         }
     };
 
-    const previousPageHandler = () => {
-        setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
-        fetchNextAndPrev(searchResults.prev)
-    }
-    const nextPageHandler = () => {
-        setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(searchResults.total / sizeValue)))
-        fetchNextAndPrev(searchResults.next)
-    }
-
     const handleSelectedBreedsChange = (value) => {
         setSelectedBreeds((prevSelected) => (prevSelected === value ? null : value));
     };
@@ -172,6 +133,54 @@ const DogInfo = () => {
             searchHandler()
         }
     };
+
+    // Pagination Logic
+    const goToPage = (pageNumber) => {
+        // setCurrentPage(pageNumber);
+        const fromValue = (pageNumber - 1) * sizeValue;
+        setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
+
+        const filters: DogFilters = {
+            breeds: selectedBreeds?.length > 0 ? [selectedBreeds] : undefined,
+            sort: sort,
+            size: sizeValue,
+            from: fromValue ? Number(fromValue) : undefined,
+        };
+        fetchDogs(filters);
+    };
+    const goToFirstPageHandler = () => {
+        setCurrentPage(1);
+        fetchNextAndPrev(searchResults.prev);
+    };
+
+    const goToLastPageHandler = () => {
+        setCurrentPage(totalPages);
+        fetchNextAndPrev(searchResults.next);
+    };
+    const getPageRange = () => {
+        const pageRange = [];
+        const maxPageNumbersToShow = 5;
+
+        let startPage = Math.max(1, currentPage - Math.floor(maxPageNumbersToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
+
+        if (endPage - startPage + 1 < maxPageNumbersToShow) {
+            startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
+        }
+        for (let page = startPage; page <= endPage; page++) {
+            pageRange.push(page);
+        }
+        return pageRange;
+    };
+    const previousPageHandler = () => {
+        setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
+        fetchNextAndPrev(searchResults.prev)
+    }
+    const nextPageHandler = () => {
+        setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(searchResults.total / sizeValue)))
+        fetchNextAndPrev(searchResults.next)
+    }
+
 
     useEffect(() => {
         fetchBreeds();
@@ -623,6 +632,14 @@ const DogInfo = () => {
                                     </a>}
                                 </div>
                                 <div className="hidden md:-mt-px md:flex">
+                                    <a
+                                        href="#"
+                                        className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                        onClick={goToFirstPageHandler}
+                                    >
+                                        <ChevronDoubleLeftIcon className="mr-3 h-5 w-5 text-gray-400" aria-hidden="true" />
+
+                                    </a>
                                     {getPageRange().map((pageNumber) => (
                                         <a
                                             key={pageNumber}
@@ -636,7 +653,14 @@ const DogInfo = () => {
                                             {pageNumber}
                                         </a>
                                     ))}
+                                    <a
+                                        href="#"
+                                        className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                        onClick={goToLastPageHandler}
+                                    >
 
+                                        <ChevronDoubleRightIcon className="ml-3 h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    </a>
                                 </div>
                                 <div className="-mt-px flex w-0 flex-1 justify-end">
                                     {currentPage !== totalPages && searchResults.total > sizeValue && (
