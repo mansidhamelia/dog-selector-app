@@ -36,8 +36,8 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
-    const [latitudeValue, setLatitudeValue] = useState<number>();
-    const [longitude, setLongitude] = useState<number>();
+    const [latitudeValue, setLatitudeValue] = useState<number | undefined>();
+    const [longitude, setLongitude] = useState<number | undefined>();
 
     const [query, setQuery] = useState('');
     const [locationQuery, setLocationQuery] = useState('')
@@ -63,13 +63,14 @@ const DogInfo = () => {
                     location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
                     location.zip_code === locationQuery ||
                     location.state.toLowerCase().includes(locationQuery.toLowerCase())
-                    // location.longitude === locationQuery
                 )
             })
+
     const filteredLat =
         latQuery === ''
             ? searchLocations :
             searchLocations.filter((location) => {
+                console.log(latQuery, 'lat location');
                 return (
                     location.latitude === latQuery
                 )
@@ -79,7 +80,7 @@ const DogInfo = () => {
             ? searchLocations :
             searchLocations.filter((location) => {
                 return (
-                    location.longitude === latQuery
+                    location.longitude === lonQuery
                 )
             })
 
@@ -114,24 +115,20 @@ const DogInfo = () => {
     const handleSelectedLocationChange = (value) => {
         setSelectedLocation((prevSelected) => (prevSelected === value ? null : value));
     };
-
-    const handleLatitudeChange = (value) => {
-        // setLatitude(value === "" ? undefined : parseFloat(value));
-        setLatitudeValue((prevSelected) => (prevSelected === value ? null : value));
-
+    const handleLatitudeChange = (value: string) => {
+        setLatitudeValue(value === "" ? undefined : parseFloat(value));
     };
 
-    const handleLongitudeChange = (value) => {
-        // setLongitude(value === "" ? undefined : parseFloat(value));
-        setLongitude((prevSelected) => (prevSelected === value ? null : value))
+    const handleLongitudeChange = (value: string) => {
+        setLongitude(value === "" ? undefined : parseFloat(value));
     };
 
     const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
-            searchHandler()
-            if (latitudeValue !== undefined && longitude !== undefined) {
+            if (latitudeValue !== undefined || longitude !== undefined) {
                 fetchZipCode(latitudeValue, longitude);
             }
+            searchHandler()
         }
     };
 
@@ -241,7 +238,7 @@ const DogInfo = () => {
                                                 <Combobox.Input
                                                     className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                                     onChange={(event) => setLocationQuery(event.target.value)}
-                                                    // displayValue={(location) => location?.city}
+                                                    displayValue={(location) => location?.city}
                                                     placeholder="Location(i.e. Los Angeles, CA or 90210)"
                                                     onKeyPress={keyPressHandler}
                                                 />
@@ -313,10 +310,56 @@ const DogInfo = () => {
                                             placeholder="Latitude"
                                             name="search"
                                             type="search"
-                                            // value={latitude !== undefined ? latitude.toString() : ""}
-                                            onChange={handleLatitudeChange}
+                                            value={latitudeValue !== undefined ? latitudeValue.toString() : ""}
+                                            onChange={(e) => setLatitudeValue(parseFloat(e.target.value))}
                                             onKeyPress={keyPressHandler}
                                         /> */}
+                                        <Combobox as="div" value={latitudeValue !== undefined ? latitudeValue : ""} onChange={handleLatitudeChange} >
+                                            <div className="relative">
+                                                <Combobox.Input
+                                                    className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
+                                                    onChange={(event) => setLatQuery(event.target.value)}
+                                                    displayValue={(location: { latitude?: number }) => (location?.latitude !== undefined ? location.latitude.toString() : "")}
+                                                    placeholder="Latitude"
+                                                    onKeyPress={keyPressHandler}
+                                                />
+                                                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                                                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                                </Combobox.Button>
+                                                {filteredLat.length > 0 && (
+                                                    <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                        {filteredLat.map((location) => (
+                                                            <Combobox.Option
+                                                                key={location.zip_code}
+                                                                value={location.latitude}
+                                                                className={({ active }) =>
+                                                                    classNames(
+                                                                        'relative cursor-default select-none py-2 pl-3 pr-9',
+                                                                        active ? 'bg-gray-600 text-white' : 'text-gray-900'
+                                                                    )
+                                                                }
+                                                            >
+                                                                {({ active, selected }) => (
+                                                                    <>
+                                                                        <span className={classNames('block truncate', selected && 'font-semibold')}>{location.latitude}</span>
+                                                                        {selected && (
+                                                                            <span
+                                                                                className={classNames(
+                                                                                    'absolute inset-y-0 right-0 flex items-center pr-4',
+                                                                                    active ? 'text-white' : 'text-gray-600'
+                                                                                )}
+                                                                            >
+                                                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                            </span>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </Combobox.Option>
+                                                        ))}
+                                                    </Combobox.Options>
+                                                )}
+                                            </div>
+                                        </Combobox>
 
 
                                     </div>
@@ -328,11 +371,58 @@ const DogInfo = () => {
                                             name="search"
                                             type="search"
                                             value={longitude !== undefined ? longitude.toString() : ""}
-                                            onChange={handleLongitudeChange}
+                                            onChange={(e) => setLongitude(parseFloat(e.target.value))}
                                             onKeyPress={keyPressHandler}
                                         /> */}
 
+                                        <Combobox as="div" value={longitude !== undefined ? longitude : ""} onChange={handleLongitudeChange} >
+                                            <div className="relative">
+                                                <Combobox.Input
+                                                    className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
+                                                    onChange={(event) => setLonQuery(event.target.value)}
+                                                    displayValue={(location) => location?.longitude}
+                                                    // displayValue={(location: { longitude?: number }) => (location?.longitude ? location.longitude.toString() : "")}
 
+                                                    placeholder="Longitude"
+                                                    onKeyPress={keyPressHandler}
+                                                />
+                                                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                                                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                                </Combobox.Button>
+                                                {filteredLon.length > 0 && (
+                                                    <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                        {filteredLon.map((location) => (
+                                                            <Combobox.Option
+                                                                key={location.zip_code}
+                                                                value={location.longitude}
+                                                                className={({ active }) =>
+                                                                    classNames(
+                                                                        'relative cursor-default select-none py-2 pl-3 pr-9',
+                                                                        active ? 'bg-gray-600 text-white' : 'text-gray-900'
+                                                                    )
+                                                                }
+                                                            >
+                                                                {({ active, selected }) => (
+                                                                    <>
+                                                                        <span className={classNames('block truncate', selected && 'font-semibold')}>{location.longitude}</span>
+                                                                        {selected && (
+                                                                            <span
+                                                                                className={classNames(
+                                                                                    'absolute inset-y-0 right-0 flex items-center pr-4',
+                                                                                    active ? 'text-white' : 'text-gray-600'
+                                                                                )}
+                                                                            >
+                                                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                            </span>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </Combobox.Option>
+                                                        ))}
+                                                    </Combobox.Options>
+                                                )}
+                                            </div>
+                                        </Combobox>
 
                                     </div>
                                 </div>

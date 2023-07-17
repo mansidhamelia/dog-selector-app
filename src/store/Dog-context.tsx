@@ -2,8 +2,8 @@ import React, { createContext, useState, useContext } from 'react';
 
 interface Location {
     zip_code: string
-    latitude: string
-    longitude: string
+    latitude: number
+    longitude: number
     city: string
     state: string
     county: string
