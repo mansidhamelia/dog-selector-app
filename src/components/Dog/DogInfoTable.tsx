@@ -355,7 +355,7 @@ const DogInfo = () => {
                                                     <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                                         {filteredLat.map((location) => (
                                                             <Combobox.Option
-                                                                key={location.latitude}
+                                                                key={location.zip_code}
                                                                 value={location}
                                                                 className={({ active }) =>
                                                                     classNames(
@@ -389,8 +389,6 @@ const DogInfo = () => {
 
                                     </div>
                                     <div className="relative  ">
-
-
                                         <Combobox as="div" value={longitude} onChange={handleLongitudeChange} >
                                             <div className="relative">
                                                 <Combobox.Input
@@ -407,7 +405,7 @@ const DogInfo = () => {
                                                     <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                                         {filteredLon.map((location) => (
                                                             <Combobox.Option
-                                                                key={location.longitude}
+                                                                key={location.zip_code}
                                                                 value={location}
                                                                 className={({ active }) =>
                                                                     classNames(
