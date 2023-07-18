@@ -175,13 +175,13 @@ const DogInfo = () => {
     };
     const previousPageHandler = () => {
         setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
-        fetchNextAndPrev(searchResults.prev)
+        fetchNextAndPrev(searchResults.prev || '')
     }
     const nextPageHandler = () => {
         setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(searchResults.total / sizeValue)))
-        fetchNextAndPrev(searchResults.next)
-    }
+        fetchNextAndPrev(searchResults.next || '');
 
+    }
 
     useEffect(() => {
         fetchBreeds();

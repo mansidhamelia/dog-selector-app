@@ -37,7 +37,7 @@ interface DogFilters {
 interface DogSearchContextProps {
     breeds: string[],
     allDogs: Dog[],
-    searchResults: SearchResult[];
+    searchResults: SearchResult;
     searchLocations: Location[];
     favoriteDogs: string[];
     fetchDogs: (filters?: DogFilters) => void;
@@ -53,7 +53,7 @@ interface DogSearchContextProps {
 export const DogSearchContext = createContext<DogSearchContextProps>({
     breeds: [],
     allDogs: [],
-    searchResults: [],
+    searchResults: { resultIds: [], total: 0 },
     searchLocations: [],
     favoriteDogs: [],
     fetchDogs: () => { },
