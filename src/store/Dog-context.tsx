@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState } from 'react';
 
 interface Location {
     zip_code: string
@@ -45,7 +45,6 @@ interface DogSearchContextProps {
     toggleFavorite: (dogId: string) => void;
     fetchLocations: () => void;
     fetchNextAndPrev: (link: string) => void;
-    endIndex: number;
     currentPage: number;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
     fetchZipCode: (lat: number, lon: number) => void;
@@ -62,7 +61,6 @@ export const DogSearchContext = createContext<DogSearchContextProps>({
     toggleFavorite: () => { },
     fetchLocations: () => { },
     fetchNextAndPrev: (link: string) => { },
-    endIndex: 25,
     currentPage: 1,
     setCurrentPage: () => { },
     fetchZipCode: () => { }
@@ -76,7 +74,6 @@ export function DogSearchProvider({ children }) {
     const [breeds, setBreeds] = useState<string[]>([]);
     const [searchLocations, setSearchLocations] = useState<Location[]>([]);
     const [favoriteDogs, setFavoriteDogs] = useState<string[]>([]);
-    const [endIndex, setEndIndex] = useState(25)
     const [currentPage, setCurrentPage] = useState(1);
 
     // Fetch dog breeds
@@ -120,7 +117,6 @@ export function DogSearchProvider({ children }) {
                 const data: SearchResult = await response.json();
                 const dogIds = data.resultIds;
                 setSearchResults(data);
-                // setCurrentPage(1);
 
                 // Fetch dog details based on Ids
                 fetchDogDetails(dogIds)
@@ -167,11 +163,6 @@ export function DogSearchProvider({ children }) {
                 const dogIds = data.resultIds
                 fetchDogDetails(dogIds)
                 setSearchResults(data)
-
-                const nextPage = data.next;
-                const nextFromValue = nextPage ? nextPage.match(/from=(\d+)/)[1] : null;
-
-                setEndIndex(nextFromValue)
             }
         } catch (error) {
             console.error('Failed to fetch dog breeds:', error);
@@ -267,7 +258,6 @@ export function DogSearchProvider({ children }) {
         toggleFavorite,
         allDogs,
         fetchNextAndPrev,
-        endIndex,
         currentPage,
         setCurrentPage,
         fetchZipCode: (lat: number, lon: number) => fetchZipCode(lat, lon),

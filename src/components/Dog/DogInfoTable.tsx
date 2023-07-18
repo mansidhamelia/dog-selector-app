@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react"
-import { MagnifyingGlassIcon, ChevronUpDownIcon, CheckIcon, ArrowLongLeftIcon, ArrowLongRightIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/20/solid'
+import { MagnifyingGlassIcon, ChevronUpDownIcon, CheckIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/20/solid'
 import { DogSearchContext } from "../../store/Dog-context"
 import { Combobox } from '@headlessui/react'
 import MatchedDogModal from "./MatchedDog"
@@ -28,7 +28,7 @@ const size = [
 ]
 
 const DogInfo = () => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNextAndPrev, endIndex, fetchZipCode, currentPage, setCurrentPage } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNextAndPrev, fetchZipCode, currentPage, setCurrentPage } = useContext(DogSearchContext);
 
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
@@ -46,7 +46,7 @@ const DogInfo = () => {
     const [lonQuery, setLonQuery] = useState('');
 
     const startIndex = (currentPage - 1) * sizeValue + 1;
-    const endIndex1 = Math.min(startIndex + sizeValue - 1, searchResults.total);
+    const endIndex = Math.min(startIndex + sizeValue - 1, searchResults.total);
     const totalPages = Math.ceil(searchResults.total / sizeValue);
 
 
@@ -61,8 +61,6 @@ const DogInfo = () => {
         locationQuery === ''
             ? searchLocations
             : searchLocations.filter((location) => {
-                console.log(locationQuery, ' location');
-                console.log(location.city, 'lattitude')
                 return (
                     location.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
                     location.zip_code === locationQuery ||
@@ -74,16 +72,16 @@ const DogInfo = () => {
         latQuery === ''
             ? searchLocations :
             searchLocations.filter((location) => {
-                console.log(latQuery, 'lat location');
-                console.log(location.latitude, 'lattitude')
-                return (location.latitude === parseFloat(latQuery))
+                return (
+                    location.latitude?.toString().includes(latQuery)
+                )
             })
     const filteredLon =
         lonQuery === ''
             ? searchLocations :
             searchLocations.filter((location) => {
                 return (
-                    location.longitude === parseFloat(lonQuery)
+                    location.longitude?.toString().includes(lonQuery)
                 )
             })
 
@@ -111,24 +109,17 @@ const DogInfo = () => {
         setSelectedLocation((prevSelected) => (prevSelected === value ? null : value));
     };
     const handleLatitudeChange = (value: number) => {
-        setLatitudeValue((prevSelected) => (prevSelected === value ? null : value));
+        setLatitudeValue((prevSelected) => (prevSelected === value.latitude ? null : value.latitude));
+        setLatQuery(value.latitude.toString());
     };
 
     const handleLongitudeChange = (value: number) => {
-        setLongitude((prevSelected) => (prevSelected === value ? null : value));
+        setLongitude((prevSelected) => (prevSelected === value.longitude ? null : value.longitude));
+        setLonQuery(value.longitude.toString());
     };
 
     const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
-            // if (latitudeValue !== undefined && longitude !== undefined) {
-            //     const lat = parseFloat(latitudeValue);
-            //     const lon = parseFloat(longitude);
-            //     if (!isNaN(lat) && !isNaN(lon)) {
-            //         fetchZipCode(lat, lon);
-            //     } else {
-            //         console.error('Invalid latitude or longitude');
-            //     }
-            // }
             setCurrentPage(1)
             searchHandler()
         }
@@ -348,16 +339,12 @@ const DogInfo = () => {
                                         />
                                     </div>
                                     <div className="relative  ">
-
                                         <Combobox as="div" value={latitudeValue} onChange={handleLatitudeChange} >
                                             <div className="relative">
                                                 <Combobox.Input
                                                     className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                                     onChange={(event) => setLatQuery(event.target.value)}
-                                                    displayValue={(location: { latitude?: number }) =>
-                                                        location?.latitude !== undefined ? location.latitude.toString() : ''
-                                                    }
-                                                    // displayValue={(location) => location?.latitude}
+                                                    value={latQuery}
                                                     placeholder="Latitude"
                                                     onKeyPress={keyPressHandler}
                                                 />
@@ -369,7 +356,7 @@ const DogInfo = () => {
                                                         {filteredLat.map((location) => (
                                                             <Combobox.Option
                                                                 key={location.latitude}
-                                                                value={location.latitude.toString()}
+                                                                value={location}
                                                                 className={({ active }) =>
                                                                     classNames(
                                                                         'relative cursor-default select-none py-2 pl-3 pr-9',
@@ -409,8 +396,7 @@ const DogInfo = () => {
                                                 <Combobox.Input
                                                     className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
                                                     onChange={(event) => setLonQuery(event.target.value)}
-                                                    // displayValue={(location) => location?.longitude}
-                                                    displayValue={(location: { longitude?: number }) => (location?.longitude ? location.longitude.toString() : "")}
+                                                    value={lonQuery}
                                                     placeholder="Longitude"
                                                     onKeyPress={keyPressHandler}
                                                 />
@@ -422,7 +408,7 @@ const DogInfo = () => {
                                                         {filteredLon.map((location) => (
                                                             <Combobox.Option
                                                                 key={location.longitude}
-                                                                value={location.longitude.toString()}
+                                                                value={location}
                                                                 className={({ active }) =>
                                                                     classNames(
                                                                         'relative cursor-default select-none py-2 pl-3 pr-9',
@@ -482,7 +468,7 @@ const DogInfo = () => {
                     <div className="mt-4 flex gap-x-2">
                         <button
                             type="button"
-                            className={`items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${favoriteDogs.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-600 hover:bg-gray-500'
+                            className={`items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${favoriteDogs.length === 0 ? 'bg-gray-400' : 'bg-gray-600 hover:bg-gray-500'
                                 }`}
                             onClick={handleMatch} disabled={favoriteDogs.length === 0}                    >
                             Generate Match
@@ -601,8 +587,7 @@ const DogInfo = () => {
                                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.age}</td>
                                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.zip_code}</td>
                                                         < td onClick={() => toggleFavorite(dog.id)}>
-                                                            <span className="inline-flex items-center cursor-pointer rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20"
-                                                            >
+                                                            <span className="inline-flex items-center cursor-pointer rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20">
                                                                 {favoriteDogs.includes(dog.id) ? 'Remove' : 'Add +'}
                                                             </span>
                                                         </td>
@@ -670,7 +655,7 @@ const DogInfo = () => {
                             </div>
                             <div className="hidden sm:block mt-2">
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{searchResults.total >= 1 ? startIndex : 0}</span> to <span className="font-medium">{endIndex1}</span> of{' '}
+                                    Showing <span className="font-medium">{searchResults.total >= 1 ? startIndex : 0}</span> to <span className="font-medium">{endIndex}</span> of{' '}
                                     <span className="font-medium">{searchResults.total}</span> results
                                 </p>
                             </div>
