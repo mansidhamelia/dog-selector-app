@@ -2,8 +2,8 @@ import React, { createContext, useState } from 'react';
 
 interface Location {
     zip_code: string
-    latitude: number
-    longitude: number
+    latitude: string
+    longitude: string
     city: string
     state: string
     county: string
@@ -47,7 +47,7 @@ interface DogSearchContextProps {
     fetchNextAndPrev: (link: string) => void;
     currentPage: number;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
-    fetchZipCode: (lat: number, lon: number) => void;
+    fetchZipCode: (lat: string, lon: string) => void;
 }
 
 export const DogSearchContext = createContext<DogSearchContextProps>({
@@ -116,7 +116,7 @@ export function DogSearchProvider({ children }) {
             if (response.ok) {
                 const data: SearchResult = await response.json();
                 const dogIds = data.resultIds;
-                setSearchResults(data);
+                setSearchResults(Object.assign([], data));
 
                 // Fetch dog details based on Ids
                 fetchDogDetails(dogIds)
@@ -205,7 +205,7 @@ export function DogSearchProvider({ children }) {
     };
 
     // Fetch zip code based on latitude and longitude
-    const fetchZipCode = async (latitude: number, longitude: number) => {
+    const fetchZipCode = async (latitude: string, longitude: string) => {
         try {
             const response = await fetch(`${baseURL}/locations/search`, {
                 method: 'POST',
@@ -222,6 +222,7 @@ export function DogSearchProvider({ children }) {
             if (response.ok) {
                 const data: { results: Location[]; total: number } = await response.json();
                 if (data.total > 0) {
+
                     const filteredZipCodes = data.results.filter(
                         (location) => parseFloat(location.latitude) === parseFloat(latitude) && parseFloat(location.longitude) === parseFloat(longitude)
                     )
@@ -260,7 +261,7 @@ export function DogSearchProvider({ children }) {
         fetchNextAndPrev,
         currentPage,
         setCurrentPage,
-        fetchZipCode: (lat: number, lon: number) => fetchZipCode(lat, lon),
+        fetchZipCode: (lat: string, lon: string) => fetchZipCode(lat, lon),
     };
 
     return (

@@ -28,7 +28,7 @@ const size = [
 ]
 
 const DogInfo = () => {
-    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNextAndPrev, fetchZipCode, currentPage, setCurrentPage } = useContext(DogSearchContext);
+    const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNextAndPrev, currentPage, setCurrentPage } = useContext(DogSearchContext);
 
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
@@ -46,9 +46,8 @@ const DogInfo = () => {
     const [lonQuery, setLonQuery] = useState('');
 
     const startIndex = (currentPage - 1) * sizeValue + 1;
-    const endIndex = Math.min(startIndex + sizeValue - 1, searchResults.total);
-    const totalPages = Math.ceil(searchResults.total / sizeValue);
-
+    const endIndex = isNaN(searchResults.total) ? 0 : Math.min(startIndex + sizeValue - 1, searchResults.total);
+    const totalPages = isNaN(searchResults.total) ? 0 : Math.ceil(searchResults.total / sizeValue);
 
     const filteredBreed =
         query === ''
@@ -68,22 +67,22 @@ const DogInfo = () => {
                 )
             })
 
-    const filteredLat =
-        latQuery === ''
-            ? searchLocations :
-            searchLocations.filter((location) => {
-                return (
-                    location.latitude?.toString().includes(latQuery)
-                )
-            })
-    const filteredLon =
-        lonQuery === ''
-            ? searchLocations :
-            searchLocations.filter((location) => {
-                return (
-                    location.longitude?.toString().includes(lonQuery)
-                )
-            })
+    // const filteredLat =
+    //     latQuery === ''
+    //         ? searchLocations :
+    //         searchLocations.filter((location) => {
+    //             return (
+    //                 location.latitude?.toString().includes(latQuery)
+    //             )
+    //         })
+    // const filteredLon =
+    //     lonQuery === ''
+    //         ? searchLocations :
+    //         searchLocations.filter((location) => {
+    //             return (
+    //                 location.longitude?.toString().includes(lonQuery)
+    //             )
+    //         })
 
     const searchHandler = () => {
         setCurrentPage(1)
@@ -95,11 +94,10 @@ const DogInfo = () => {
             sort: sort,
             size: sizeValue ? Number(sizeValue) : undefined,
         };
-
         fetchDogs(filters);
-        if (latitudeValue !== undefined && longitude !== undefined) {
-            fetchZipCode(latitudeValue, longitude);
-        }
+        // if (latitudeValue !== undefined && longitude !== undefined) {
+        //     fetchZipCode(latitudeValue, longitude);
+        // }
     };
 
     const handleSelectedBreedsChange = (value) => {
@@ -108,15 +106,14 @@ const DogInfo = () => {
     const handleSelectedLocationChange = (value) => {
         setSelectedLocation((prevSelected) => (prevSelected === value ? null : value));
     };
-    const handleLatitudeChange = (value: number) => {
-        setLatitudeValue((prevSelected) => (prevSelected === value.latitude ? null : value.latitude));
-        setLatQuery(value.latitude.toString());
-    };
-
-    const handleLongitudeChange = (value: number) => {
-        setLongitude((prevSelected) => (prevSelected === value.longitude ? null : value.longitude));
-        setLonQuery(value.longitude.toString());
-    };
+    // const handleLatitudeChange = (value: Location) => {
+    //     setLatitudeValue((prevSelected) => (prevSelected === value.latitude ? null : value.latitude));
+    //     setLatQuery(value.latitude.toString());
+    // };
+    // const handleLongitudeChange = (value: Location) => {
+    //     setLongitude((prevSelected) => (prevSelected === value.longitude ? null : value.longitude));
+    //     setLonQuery(value.longitude.toString());
+    // };
 
     const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
@@ -129,7 +126,6 @@ const DogInfo = () => {
     const goToPage = (pageNumber) => {
         const fromValue = (pageNumber - 1) * sizeValue;
         setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
-
         const filters: DogFilters = {
             breeds: selectedBreeds?.length > 0 ? [selectedBreeds] : undefined,
             sort: sort,
@@ -140,11 +136,27 @@ const DogInfo = () => {
     };
     const goToFirstPageHandler = () => {
         setCurrentPage(1);
-        fetchNextAndPrev(searchResults.prev);
+        const pageNumber = 1
+        const fromValue = (pageNumber - 1) * sizeValue;
+        const filters: DogFilters = {
+            breeds: selectedBreeds?.length > 0 ? [selectedBreeds] : undefined,
+            sort: sort,
+            size: sizeValue,
+            from: fromValue ? Number(fromValue) : undefined,
+        };
+        fetchDogs(filters);
     };
+
     const goToLastPageHandler = () => {
         setCurrentPage(totalPages);
-        fetchNextAndPrev(searchResults.next);
+        const fromValue = (totalPages - 1) * sizeValue;
+        const filters: DogFilters = {
+            breeds: selectedBreeds?.length > 0 ? [selectedBreeds] : undefined,
+            sort: sort,
+            size: sizeValue,
+            from: fromValue ? Number(fromValue) : undefined,
+        };
+        fetchDogs(filters);
     };
     const getPageRange = () => {
         const pageRange = [];
@@ -209,7 +221,6 @@ const DogInfo = () => {
             console.error('Failed to fetch match:', error);
         }
     };
-
     return (
         <>
             <div className="px-4 sm:px-6 lg:px-8 ">
@@ -267,6 +278,26 @@ const DogInfo = () => {
                                             </div>
                                         </Combobox>
                                     </div>
+                                    <div className="relative">
+                                        <input
+                                            id="search-field"
+                                            className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 text-sm"
+                                            name="search"
+                                            placeholder="Min Age"
+                                            onKeyPress={keyPressHandler}
+                                            type="search" value={ageMin} onChange={e => setAgeMin(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            id="search-field"
+                                            className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
+                                            placeholder="Max Age"
+                                            name="search"
+                                            onKeyPress={keyPressHandler}
+                                            type="search" value={ageMax} onChange={e => setAgeMax(e.target.value)}
+                                        />
+                                    </div>
                                     <div className="relative w-1/2">
                                         <Combobox as="div" value={selectedLocation} onChange={handleSelectedLocationChange} >
                                             <div className="relative">
@@ -318,27 +349,9 @@ const DogInfo = () => {
                                 </div>
                                 {/* Age and Latitude/Longitude search input */}
                                 <div className="flex justify-evenly gap-x-2">
-                                    <div className="relative  ">
-                                        <input
-                                            id="search-field"
-                                            className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 text-sm"
-                                            name="search"
-                                            placeholder="Min Age"
-                                            onKeyPress={keyPressHandler}
-                                            type="search" value={ageMin} onChange={e => setAgeMin(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="relative  ">
-                                        <input
-                                            id="search-field"
-                                            className="block w-full rounded-md border-0 bg-white py-2 px-2 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  text-sm"
-                                            placeholder="Max Age"
-                                            name="search"
-                                            onKeyPress={keyPressHandler}
-                                            type="search" value={ageMax} onChange={e => setAgeMax(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="relative  ">
+
+                                    {/* Latitude and longitude combobox */}
+                                    {/* <div className="relative  ">
                                         <Combobox as="div" value={latitudeValue} onChange={handleLatitudeChange} >
                                             <div className="relative">
                                                 <Combobox.Input
@@ -385,10 +398,8 @@ const DogInfo = () => {
                                                 )}
                                             </div>
                                         </Combobox>
-
-
-                                    </div>
-                                    <div className="relative  ">
+                                    </div> */}
+                                    {/* <div className="relative  ">
                                         <Combobox as="div" value={longitude} onChange={handleLongitudeChange} >
                                             <div className="relative">
                                                 <Combobox.Input
@@ -435,8 +446,7 @@ const DogInfo = () => {
                                                 )}
                                             </div>
                                         </Combobox>
-
-                                    </div>
+                                    </div> */}
                                 </div>
                             </form>
                         </div>
