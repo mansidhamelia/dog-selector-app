@@ -1,6 +1,7 @@
 
-import React, { useState, createContext } from "react";
+import React, { useState, createContext, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from "./Notification-context";
 
 interface AuthContextProps {
     isLoggedIn: boolean;
@@ -16,8 +17,23 @@ const AuthContext = createContext<AuthContextProps>({
     onLogout: () => { }
 });
 export const AuthContextProvider = (props) => {
+
     const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const { showNotification } = useNotification();
+
     const navigate = useNavigate();
+
+    const checkLocalStorageToken = () => {
+        const token = localStorage.getItem('authToken');
+        return !!token; // Returns true if the token exists
+    };
+
+    // This effect runs when the component mounts and checks for the token in local storage
+    useEffect(() => {
+        const userIsLoggedIn = checkLocalStorageToken();
+        setIsLoggedIn(userIsLoggedIn);
+    }, []);
+
 
     const logoutHandler = async () => {
         try {
@@ -30,16 +46,19 @@ export const AuthContextProvider = (props) => {
             });
             if (response.ok) {
                 setIsLoggedIn(false);
+                showNotification('success', 'Logout successful!', 5000);
                 navigate('/')
             } else {
-                console.log('Logout failed');
+                showNotification('error', 'Logout failed. Please try again.', 5000);
             }
         } catch (error) {
-            console.log('Error during logout:', error);
+            // console.log('Error during logout:', error);
+            showNotification('error', `Error during logout:${error}`, 5000);
         }
     };
 
     const loginHandler = async (name: string, email: string) => {
+
 
         try {
             const response = await fetch(`${baseURL}/auth/login`, {
@@ -53,12 +72,15 @@ export const AuthContextProvider = (props) => {
 
             if (response.ok) {
                 setIsLoggedIn(true)
+                showNotification('success', 'Login Successful!', 5000);
                 navigate('/doglist');
+
             } else {
-                console.error('Login failed!');
+                showNotification('error', 'Login failed. Please try again.', 5000);
             }
         } catch (error) {
-            console.error('An error occurred during login:', error);
+            showNotification('error', `An error occurred during login:${error}`, 5000);
+
         }
     }
     return <AuthContext.Provider value={{ isLoggedIn: isLoggedIn, onLogout: logoutHandler, onLogin: loginHandler }}>{props.children}</AuthContext.Provider>
