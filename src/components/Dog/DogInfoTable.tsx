@@ -116,8 +116,9 @@ const DogInfo = () => {
     //     setLonQuery(value.longitude.toString());
     // };
 
-    const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter") {
+    const keyPressHandler = (key: string) => {
+
+        if (key === 'Enter') {
             setCurrentPage(1)
             searchHandler()
         }
@@ -238,8 +239,9 @@ const DogInfo = () => {
                                             onChange={handleSelectedBreedsChange}
                                             options={filteredBreed}
                                             placeholder="Breed"
-                                            inputValue={query}
-                                            onInputChange={setQuery}
+                                            inputValue={query} // Pass the current query value
+                                            onInputChange={setQuery} // Pass the function to update the query
+                                            onKeyPress={keyPressHandler} // Pass the key press handler function
                                         />
 
                                     </div>

@@ -6,7 +6,7 @@ import { ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid'
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
-const BaseCombobox = ({  onChange, options, placeholder, onInputChange }) => {
+const BaseCombobox = ({ onChange, options, placeholder, onInputChange, onKeyPress }) => {
     return (
         <Combobox as="div" >
             <div className="relative">
@@ -18,6 +18,9 @@ const BaseCombobox = ({  onChange, options, placeholder, onInputChange }) => {
                     }}
                     placeholder={placeholder}
                     autoComplete="off"
+                    onKeyPress={event => {
+                        onKeyPress(event.key);
+                    }}
                 />
                 <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
                     <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
