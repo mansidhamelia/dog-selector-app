@@ -116,9 +116,8 @@ const DogInfo = () => {
     //     setLonQuery(value.longitude.toString());
     // };
 
-    const keyPressHandler = (key: string) => {
-
-        if (key === 'Enter') {
+    const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
             setCurrentPage(1)
             searchHandler()
         }
@@ -182,7 +181,6 @@ const DogInfo = () => {
     const nextPageHandler = () => {
         setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(searchResults.total / sizeValue)))
         fetchNextAndPrev(searchResults.next || '');
-
     }
 
     useEffect(() => {
@@ -231,20 +229,20 @@ const DogInfo = () => {
                     <div className=" top-0 py-2 flex shrink-0 items-center gap-x-6 border-b border-black/10 shadow-sm">
                         <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 ">
                             <form className="flex flex-1 flex-col items-center gap-y-2 " action="#" method="GET">
-                                {/* Location and Breed search input */}
                                 <div className="flex justify-between w-full gap-x-2">
+                                    {/* Breed */}
                                     <div className="relative w-1/2">
                                         <BaseCombobox
                                             value={selectedBreeds}
                                             onChange={handleSelectedBreedsChange}
                                             options={filteredBreed}
-                                            placeholder="Breed"
+                                            placeholder="Breeds"
                                             inputValue={query} // Pass the current query value
                                             onInputChange={setQuery} // Pass the function to update the query
                                             onKeyPress={keyPressHandler} // Pass the key press handler function
                                         />
-
                                     </div>
+                                    {/* Age */}
                                     <div className="relative">
                                         <input
                                             id="search-field"
@@ -265,6 +263,7 @@ const DogInfo = () => {
                                             type="search" value={ageMax} onChange={e => setAgeMax(e.target.value)}
                                         />
                                     </div>
+                                    {/* Location */}
                                     <div className="relative w-1/2">
                                         <Combobox as="div" value={selectedLocation} onChange={handleSelectedLocationChange} >
                                             <div className="relative">
@@ -275,8 +274,8 @@ const DogInfo = () => {
                                                     placeholder="Location(i.e. Los Angeles, CA or 90210)"
                                                     onKeyPress={keyPressHandler}
                                                     autoComplete="off"
-
                                                 />
+
                                                 <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
                                                     <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                                                 </Combobox.Button>
@@ -314,11 +313,20 @@ const DogInfo = () => {
                                                 )}
                                             </div>
                                         </Combobox>
+                                        {/* <BaseCombobox
+                                            value={selectedLocation}
+                                            onChange={handleSelectedLocationChange}
+                                            options={filteredLocation}
+                                            placeholder="Location(i.e. Los Angeles, CA or 90210)"
+                                            inputValue={locationQuery} // Pass the current query value
+                                            onInputChange={setLocationQuery} // Pass the function to update the query
+                                            onKeyPress={keyPressHandler} // Pass the key press handler function
+                                            isLocation
+                                        /> */}
                                     </div>
                                 </div>
                                 {/* Age and Latitude/Longitude search input */}
                                 <div className="flex justify-evenly gap-x-2">
-
                                     {/* Latitude and longitude combobox */}
                                     {/* <div className="relative  ">
                                         <Combobox as="div" value={latitudeValue} onChange={handleLatitudeChange} >
