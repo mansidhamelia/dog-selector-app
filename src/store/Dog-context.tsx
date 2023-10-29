@@ -129,8 +129,8 @@ export function DogSearchProvider({ children }) {
             } else if (response.status === 401) {
                 showNotification('error', 'Unauthorized. Please log in to access this page.', 5000);
                 navigate('/')
-            } else {
-                console.error('Failed to fetch dogs');
+            } else if (response.status === 404) {
+                showNotification('error', 'Page not found.', 5000);
             }
         } catch (error) {
             showNotification('error', 'Something went wrong!', 3000);

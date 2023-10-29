@@ -3,7 +3,7 @@ import React from 'react';
 
 const MatchedDogModal = ({ dog }) => {
     return (
-        <div className="flex flex-1 flex-col p-8">
+        <div className="flex flex-1 flex-col ">
             <h1 className='font-bold mb-2'>         Congratulations! You've got a match!
             </h1>
             <img className="mx-auto h-32 w-32 flex-shrink-0 rounded-full" src={dog.img} alt={dog.name} />

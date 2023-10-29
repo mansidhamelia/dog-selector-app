@@ -47,6 +47,8 @@ export const AuthContextProvider = (props) => {
                 setIsLoggedIn(false);
                 showNotification('success', 'Logout successful!', 5000);
                 navigate('/')
+            } else if (response.status === 404) {
+                showNotification('error', 'Page not found.', 5000);
             } else {
                 showNotification('error', 'Logout failed. Please try again.', 5000);
             }
@@ -73,6 +75,8 @@ export const AuthContextProvider = (props) => {
 
             } else if (response.status === 401) {
                 showNotification('error', 'Unauthorized. Please log in to access this page.', 5000);
+            } else if (response.status === 404) {
+                showNotification('error', 'Page not found.', 5000);
             } else {
                 showNotification('error', 'Login failed. Please try again.', 5000);
             }

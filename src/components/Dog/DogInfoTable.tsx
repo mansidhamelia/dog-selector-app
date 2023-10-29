@@ -4,6 +4,7 @@ import { DogSearchContext } from "../../store/Dog-context"
 import { Combobox } from '@headlessui/react'
 import MatchedDogModal from "./MatchedDog"
 import BaseCombobox from "../Base/BaseCombobox"
+import DogTable from "./DogTableData"
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -22,15 +23,10 @@ interface DogFilters {
     from?: number;
 }
 
-const size = [
-    { id: 1, value: 10 },
-    { id: 2, value: 25 },
-    { id: 3, value: 50 },
-]
+const size = [10, 25, 50]
 
 const DogInfo = () => {
     const { searchResults, favoriteDogs, fetchDogs, fetchBreeds, fetchLocations, searchLocations, toggleFavorite, allDogs, breeds, fetchNextAndPrev, currentPage, setCurrentPage } = useContext(DogSearchContext);
-
     const [matchedDog, setMatchedDog] = useState<undefined>(undefined)
     const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
     const [ageMin, setAgeMin] = useState('');
@@ -38,7 +34,6 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
-  
     const [query, setQuery] = useState('');
     const [locationQuery, setLocationQuery] = useState('')
 
@@ -128,7 +123,6 @@ const DogInfo = () => {
     const getPageRange = () => {
         const pageRange = [];
         const maxPageNumbersToShow = 5;
-
         let startPage = Math.max(1, currentPage - Math.floor(maxPageNumbersToShow / 2));
         let endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
 
@@ -153,11 +147,9 @@ const DogInfo = () => {
         fetchBreeds();
         fetchLocations();
     }, [])
-
     useEffect(() => {
         searchHandler()
     }, [sizeValue, sort])
-
     const handleSort = (option: typeof sort) => {
         setSort(option);
     };
@@ -255,8 +247,7 @@ const DogInfo = () => {
                                                                     classNames(
                                                                         'relative cursor-default select-none py-2 pl-3 pr-9',
                                                                         active ? 'bg-gray-600 text-white' : 'text-gray-900'
-                                                                    )
-                                                                }
+                                                                    )}
                                                             >
                                                                 {({ active, selected }) => (
                                                                     <>
@@ -314,54 +305,16 @@ const DogInfo = () => {
                             onClick={handleMatch} disabled={favoriteDogs.length === 0}                    >
                             Generate Match
                         </button>
-                        {!matchedDog && <Combobox as="div" value={sizeValue}>
-                            <div className="relative">
-                                <Combobox.Input
-                                    className=" w-20 rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-                                    placeholder="Size"
-                                    autoComplete="off"
-                                    value={sizeValue}
-                                />
-                                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-                                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                </Combobox.Button>
-                                {size.length > 0 && (
-                                    <Combobox.Options className="absolute w-full z-10 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                        {size.map((size) => (
-                                            <Combobox.Option
-                                                key={size.id}
-                                                value={size.value}
-                                                className={({ active }) =>
-                                                    classNames(
-                                                        'relative cursor-default select-none py-2 pl-3 pr-9',
-                                                        active ? 'bg-gray-600 text-white' : 'text-gray-900'
-                                                    )
-                                                }
-                                                onClick={() => {
-                                                    setSizeValue(size.value);
-                                                }}
-                                            >
-                                                {({ active, selected }) => (
-                                                    <>
-                                                        <span className={classNames('block truncate', selected && 'font-semibold')}>{size.value}</span>
-                                                        {selected && (
-                                                            <span
-                                                                className={classNames(
-                                                                    'absolute inset-y-0 right-0 flex items-center pr-4',
-                                                                    active ? 'text-white' : 'text-gray-600'
-                                                                )}
-                                                            >
-                                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                                            </span>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </Combobox.Option>
-                                        ))}
-                                    </Combobox.Options>
-                                )}
-                            </div>
-                        </Combobox>}
+                        {!matchedDog &&
+                            <BaseCombobox
+                                value={sizeValue}
+                                onChange={setSizeValue}
+                                options={size}
+                                placeholder="Size"
+                                onKeyPress={keyPressHandler}
+                                isSize
+                            />
+                        }
                     </div>
                 </div>
 
@@ -374,69 +327,13 @@ const DogInfo = () => {
                     < div className="mt-8 flow-root ">
                         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                                {allDogs.length == 0 ?
-                                    <p>No more data with this filter.</p>
-                                    :
-                                    <table className="min-w-full divide-y divide-gray-300">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                    <a href="#" className="group inline-flex" onClick={() => handleSort(sort === 'name:asc' ? 'name:desc' : 'name:asc')}>
-                                                        Name
-                                                        <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
-                                                        </span>
-                                                    </a>
-                                                </th>
-                                                <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                                    <a href="#" className="group inline-flex" onClick={() => handleSort(sort === 'breed:asc' ? 'breed:desc' : 'breed:asc')}>
-                                                        Breed
-                                                        <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
-                                                        </span>
-                                                    </a>
-                                                </th>
-                                                <th scope="col" className="px-3 py-3.5 text-sm font-semibold text-gray-900">
-                                                    <a href="#" className="group inline-flex" onClick={() => handleSort(sort === 'age:asc' ? 'age:desc' : 'age:asc')}>
-                                                        Age
-                                                        <span className="ml-2 flex-none rounded bg-gray-100 text-gray-900 group-hover:bg-gray-200">
-                                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
-                                                        </span>
-                                                    </a>
-                                                </th>
-                                                <th scope="col" className="px-3 py-3.5  text-sm font-semibold text-gray-900">
-                                                    Zip Code
-                                                </th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody className="divide-y divide-gray-200">
-                                            {allDogs
-                                                // .sort((a, b) => a.breed.localeCompare(b.breed))
-                                                .map((dog) => (
-                                                    < tr key={dog.id} >
-                                                        <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                                            <div className="flex items-center">
-                                                                <div className="h-11 w-11 flex-shrink-0">
-                                                                    <img className="h-11 w-11 rounded-full" src={dog.img} alt={dog.name} />
-                                                                </div>
-                                                                <div className="ml-4">
-                                                                    <div className="font-medium text-gray-900">{dog.name}</div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="whitespace-nowrap  px-3 py-4 text-sm text-gray-500">{dog.breed}</td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.age}</td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{dog.zip_code}</td>
-                                                        < td onClick={() => toggleFavorite(dog.id)}>
-                                                            <span className="inline-flex items-center cursor-pointer rounded-full bg-gray-50 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-600/20">
-                                                                {favoriteDogs.includes(dog.id) ? 'Remove' : 'Add +'}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                        </tbody>
-                                    </table>}
+                                <DogTable
+                                    dogs={allDogs}
+                                    favoriteDogs={favoriteDogs}
+                                    toggleFavorite={toggleFavorite}
+                                    sort={sort}
+                                    handleSort={handleSort}
+                                />
                             </div>
                         </div>
 
@@ -480,16 +377,13 @@ const DogInfo = () => {
                                             <a
                                                 href="#"
                                                 className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                                                onClick={nextPageHandler}
-                                            >
+                                                onClick={nextPageHandler} >
                                                 Next
                                             </a>
                                             <a
                                                 href="#"
                                                 className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                                                onClick={goToLastPageHandler}
-                                            >
-
+                                                onClick={goToLastPageHandler}>
                                                 <ChevronDoubleRightIcon className="ml-3 h-5 w-5 text-gray-400" aria-hidden="true" />
                                             </a>
                                         </div>)}
@@ -502,8 +396,7 @@ const DogInfo = () => {
                                 </p>
                             </div>
                         </nav>
-                    </div >
-                )}
+                    </div >)}
             </div >
         </>
     )
