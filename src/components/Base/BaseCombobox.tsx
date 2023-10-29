@@ -6,25 +6,14 @@ function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 const BaseCombobox = ({ options, placeholder, onChange, onInputChange, onKeyPress, isLocation }) => {
-
-
     const [selectedOption, setSelectedOption] = useState(null);
 
     const handleInputChange = (value) => {
-        console.log(value, 'val');
-
         setSelectedOption(null);
         onChange(value);
     };
 
     const handleSelectOption = (option) => {
-        console.log(option, 'opt');
-
-        // if (typeof option === 'object' && option.hasOwnProperty('city')) {
-        //     // If it's a location object, extract the display value
-        //     option = `${option.zip_code}`;
-        // }
-
         if (selectedOption === option) {
             setSelectedOption(null);
         } else {

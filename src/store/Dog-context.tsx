@@ -1,4 +1,6 @@
 import React, { createContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useNotification } from "./Notification-context";
 
 interface Location {
     zip_code: string
@@ -48,6 +50,7 @@ interface DogSearchContextProps {
     currentPage: number;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
     fetchZipCode: (lat: string, lon: string) => void;
+    fetchDogDetails: () => void;
 }
 
 export const DogSearchContext = createContext<DogSearchContextProps>({
@@ -63,7 +66,8 @@ export const DogSearchContext = createContext<DogSearchContextProps>({
     fetchNextAndPrev: (link: string) => { },
     currentPage: 1,
     setCurrentPage: () => { },
-    fetchZipCode: () => { }
+    fetchZipCode: () => { },
+    fetchDogDetails: () => { }
 });
 
 const baseURL = 'https://frontend-take-home-service.fetch.com';
@@ -75,6 +79,8 @@ export function DogSearchProvider({ children }) {
     const [searchLocations, setSearchLocations] = useState<Location[]>([]);
     const [favoriteDogs, setFavoriteDogs] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const navigate = useNavigate();
+    const { showNotification } = useNotification();
 
     // Fetch dog breeds
     const fetchBreeds = async () => {
@@ -87,7 +93,8 @@ export function DogSearchProvider({ children }) {
                 setBreeds(data);
             }
         } catch (error) {
-            console.error('Failed to fetch dog breeds:', error);
+            showNotification('error', 'Something went wrong!', 3000);
+
         }
     };
 
@@ -117,14 +124,16 @@ export function DogSearchProvider({ children }) {
                 const data: SearchResult = await response.json();
                 const dogIds = data.resultIds;
                 setSearchResults(Object.assign([], data));
-
                 // Fetch dog details based on Ids
                 fetchDogDetails(dogIds)
+            } else if (response.status === 401) {
+                showNotification('error', 'Unauthorized. Please log in to access this page.', 5000);
+                navigate('/')
             } else {
                 console.error('Failed to fetch dogs');
             }
         } catch (error) {
-            console.error('Failed to fetch dogs:', error);
+            showNotification('error', 'Something went wrong!', 3000);
         }
     };
 
@@ -148,7 +157,7 @@ export function DogSearchProvider({ children }) {
                 console.error('Failed to fetch dog details');
             }
         } catch (error) {
-            console.error('Failed to fetch dogs:', error);
+            showNotification('error', 'Something went wrong!', 3000);
         }
     }
 
@@ -165,7 +174,7 @@ export function DogSearchProvider({ children }) {
                 setSearchResults(data)
             }
         } catch (error) {
-            console.error('Failed to fetch dog breeds:', error);
+            showNotification('error', 'Something went wrong!', 3000);
         }
     };
 
@@ -200,7 +209,7 @@ export function DogSearchProvider({ children }) {
                 console.error('Failed to search locations');
             }
         } catch (error) {
-            console.error('Failed to search locations:', error);
+            showNotification('error', 'Something went wrong!', 3000);
         }
     };
 
@@ -234,16 +243,16 @@ export function DogSearchProvider({ children }) {
                         fetchDogs(filters);
 
                     } else {
-                        console.error('No zip codes found with similar latitude and longitude');
+                        showNotification('error', 'No zip codes found with similar latitude and longitude', 3000);
                     }
                 } else {
-                    console.error('No location found for the given latitude and longitude');
+                    showNotification('error', 'No location found for the given latitude and longitude', 3000);
                 }
             } else {
                 console.error('Failed to fetch zip code');
             }
         } catch (error) {
-            console.error('Failed to fetch zip code:', error);
+            showNotification('error', 'Something went wrong!', 3000);
         }
     };
 
@@ -255,6 +264,7 @@ export function DogSearchProvider({ children }) {
         fetchBreeds,
         fetchDogs,
         fetchLocations,
+        fetchDogDetails,
         searchLocations,
         toggleFavorite,
         allDogs,

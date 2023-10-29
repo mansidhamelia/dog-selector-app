@@ -38,13 +38,9 @@ const DogInfo = () => {
     const [sort, setSort] = useState<'name:asc' | 'name:desc' | 'breed:asc' | 'breed:desc' | 'age:asc' | 'age:desc' | 'zipCodes:asc' | 'zipCodes:desc'>('breed:asc');
     const [sizeValue, setSizeValue] = useState(25)
     const [selectedLocation, setSelectedLocation] = useState('');
-    const [latitudeValue, setLatitudeValue] = useState<number | undefined>();
-    const [longitude, setLongitude] = useState<number | undefined>();
-
+  
     const [query, setQuery] = useState('');
     const [locationQuery, setLocationQuery] = useState('')
-    const [latQuery, setLatQuery] = useState('');
-    const [lonQuery, setLonQuery] = useState('');
 
     const startIndex = (currentPage - 1) * sizeValue + 1;
     const endIndex = isNaN(searchResults.total) ? 0 : Math.min(startIndex + sizeValue - 1, searchResults.total);
@@ -67,24 +63,6 @@ const DogInfo = () => {
                     location.state.toLowerCase().includes(locationQuery.toLowerCase())
                 )
             })
-
-    // const filteredLat =
-    //     latQuery === ''
-    //         ? searchLocations :
-    //         searchLocations.filter((location) => {
-    //             return (
-    //                 location.latitude?.toString().includes(latQuery)
-    //             )
-    //         })
-    // const filteredLon =
-    //     lonQuery === ''
-    //         ? searchLocations :
-    //         searchLocations.filter((location) => {
-    //             return (
-    //                 location.longitude?.toString().includes(lonQuery)
-    //             )
-    //         })
-
     const searchHandler = () => {
         setCurrentPage(1)
         const filters: DogFilters = {
@@ -96,9 +74,6 @@ const DogInfo = () => {
             size: sizeValue ? Number(sizeValue) : undefined,
         };
         fetchDogs(filters);
-        // if (latitudeValue !== undefined && longitude !== undefined) {
-        //     fetchZipCode(latitudeValue, longitude);
-        // }
     };
 
     const handleSelectedBreedsChange = (value) => {
@@ -107,15 +82,6 @@ const DogInfo = () => {
     const handleSelectedLocationChange = (value) => {
         setSelectedLocation((prevSelected) => (prevSelected === value ? null : value));
     };
-    // const handleLatitudeChange = (value: Location) => {
-    //     setLatitudeValue((prevSelected) => (prevSelected === value.latitude ? null : value.latitude));
-    //     setLatQuery(value.latitude.toString());
-    // };
-    // const handleLongitudeChange = (value: Location) => {
-    //     setLongitude((prevSelected) => (prevSelected === value.longitude ? null : value.longitude));
-    //     setLonQuery(value.longitude.toString());
-    // };
-
     const keyPressHandler = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
             setCurrentPage(1)
@@ -237,9 +203,9 @@ const DogInfo = () => {
                                             onChange={handleSelectedBreedsChange}
                                             options={filteredBreed}
                                             placeholder="Breeds"
-                                            inputValue={query} // Pass the current query value
-                                            onInputChange={setQuery} // Pass the function to update the query
-                                            onKeyPress={keyPressHandler} // Pass the key press handler function
+                                            inputValue={query}
+                                            onInputChange={setQuery}
+                                            onKeyPress={keyPressHandler}
                                         />
                                     </div>
                                     {/* Age */}
@@ -313,117 +279,7 @@ const DogInfo = () => {
                                                 )}
                                             </div>
                                         </Combobox>
-                                        {/* <BaseCombobox
-                                            value={selectedLocation}
-                                            onChange={handleSelectedLocationChange}
-                                            options={filteredLocation}
-                                            placeholder="Location(i.e. Los Angeles, CA or 90210)"
-                                            inputValue={locationQuery} // Pass the current query value
-                                            onInputChange={setLocationQuery} // Pass the function to update the query
-                                            onKeyPress={keyPressHandler} // Pass the key press handler function
-                                            isLocation
-                                        /> */}
                                     </div>
-                                </div>
-                                {/* Age and Latitude/Longitude search input */}
-                                <div className="flex justify-evenly gap-x-2">
-                                    {/* Latitude and longitude combobox */}
-                                    {/* <div className="relative  ">
-                                        <Combobox as="div" value={latitudeValue} onChange={handleLatitudeChange} >
-                                            <div className="relative">
-                                                <Combobox.Input
-                                                    className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-                                                    onChange={(event) => setLatQuery(event.target.value)}
-                                                    value={latQuery}
-                                                    placeholder="Latitude"
-                                                    onKeyPress={keyPressHandler}
-                                                />
-                                                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-                                                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                                </Combobox.Button>
-                                                {filteredLat.length > 0 && (
-                                                    <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                        {filteredLat.map((location) => (
-                                                            <Combobox.Option
-                                                                key={location.zip_code}
-                                                                value={location}
-                                                                className={({ active }) =>
-                                                                    classNames(
-                                                                        'relative cursor-default select-none py-2 pl-3 pr-9',
-                                                                        active ? 'bg-gray-600 text-white' : 'text-gray-900'
-                                                                    )
-                                                                }
-                                                            >
-                                                                {({ active, selected }) => (
-                                                                    <>
-                                                                        <span className={classNames('block truncate', selected && 'font-semibold')}>{location.latitude}</span>
-                                                                        {selected && (
-                                                                            <span
-                                                                                className={classNames(
-                                                                                    'absolute inset-y-0 right-0 flex items-center pr-4',
-                                                                                    active ? 'text-white' : 'text-gray-600'
-                                                                                )}
-                                                                            >
-                                                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                                                            </span>
-                                                                        )}
-                                                                    </>
-                                                                )}
-                                                            </Combobox.Option>
-                                                        ))}
-                                                    </Combobox.Options>
-                                                )}
-                                            </div>
-                                        </Combobox>
-                                    </div> */}
-                                    {/* <div className="relative  ">
-                                        <Combobox as="div" value={longitude} onChange={handleLongitudeChange} >
-                                            <div className="relative">
-                                                <Combobox.Input
-                                                    className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-                                                    onChange={(event) => setLonQuery(event.target.value)}
-                                                    value={lonQuery}
-                                                    placeholder="Longitude"
-                                                    onKeyPress={keyPressHandler}
-                                                />
-                                                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-                                                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                                </Combobox.Button>
-                                                {filteredLon.length > 0 && (
-                                                    <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                        {filteredLon.map((location) => (
-                                                            <Combobox.Option
-                                                                key={location.zip_code}
-                                                                value={location}
-                                                                className={({ active }) =>
-                                                                    classNames(
-                                                                        'relative cursor-default select-none py-2 pl-3 pr-9',
-                                                                        active ? 'bg-gray-600 text-white' : 'text-gray-900'
-                                                                    )
-                                                                }
-                                                            >
-                                                                {({ active, selected }) => (
-                                                                    <>
-                                                                        <span className={classNames('block truncate', selected && 'font-semibold')}>{location.longitude}</span>
-                                                                        {selected && (
-                                                                            <span
-                                                                                className={classNames(
-                                                                                    'absolute inset-y-0 right-0 flex items-center pr-4',
-                                                                                    active ? 'text-white' : 'text-gray-600'
-                                                                                )}
-                                                                            >
-                                                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                                                            </span>
-                                                                        )}
-                                                                    </>
-                                                                )}
-                                                            </Combobox.Option>
-                                                        ))}
-                                                    </Combobox.Options>
-                                                )}
-                                            </div>
-                                        </Combobox>
-                                    </div> */}
                                 </div>
                             </form>
                         </div>

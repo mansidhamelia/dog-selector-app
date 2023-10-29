@@ -34,7 +34,6 @@ export const AuthContextProvider = (props) => {
         setIsLoggedIn(userIsLoggedIn);
     }, []);
 
-
     const logoutHandler = async () => {
         try {
             const response = await fetch(`${baseURL}/auth/logout`, {
@@ -52,14 +51,11 @@ export const AuthContextProvider = (props) => {
                 showNotification('error', 'Logout failed. Please try again.', 5000);
             }
         } catch (error) {
-            // console.log('Error during logout:', error);
             showNotification('error', `Error during logout:${error}`, 5000);
         }
     };
 
     const loginHandler = async (name: string, email: string) => {
-
-
         try {
             const response = await fetch(`${baseURL}/auth/login`, {
                 method: 'POST',
@@ -75,6 +71,8 @@ export const AuthContextProvider = (props) => {
                 showNotification('success', 'Login Successful!', 5000);
                 navigate('/doglist');
 
+            } else if (response.status === 401) {
+                showNotification('error', 'Unauthorized. Please log in to access this page.', 5000);
             } else {
                 showNotification('error', 'Login failed. Please try again.', 5000);
             }
