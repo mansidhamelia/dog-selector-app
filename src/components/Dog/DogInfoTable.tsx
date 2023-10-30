@@ -325,17 +325,11 @@ const DogInfo = () => {
                     </div>
                 ) : (
                     < div className="mt-8 flow-root ">
-                        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                                <DogTable
-                                    dogs={allDogs}
-                                    favoriteDogs={favoriteDogs}
-                                    toggleFavorite={toggleFavorite}
-                                    sort={sort}
-                                    handleSort={handleSort}
-                                />
-                            </div>
-                        </div>
+                        <DogTable
+                            dogs={allDogs}
+                            sort={sort}
+                            handleSort={handleSort}
+                        />
 
                         {/* Pagination */}
                         <nav className="flex-row items-center  border-t border-gray-200 px-4 py-3 sm:px-0">
